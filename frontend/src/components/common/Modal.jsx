@@ -39,21 +39,21 @@ export function Modal({ open, onClose, title, description, size = 'md', children
         role="dialog"
         aria-modal="true"
         className={cn(
-          'relative w-full animate-slide-up rounded-xl bg-white shadow-xl ring-1 ring-slate-200',
+          'relative w-full animate-slide-up rounded-xl bg-white shadow-xl ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700',
           SIZES[size]
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 dark:border-slate-700">
           <div>
-            {title && <h2 className="text-base font-semibold text-slate-900">{title}</h2>}
-            {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+            {title && <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h2>}
+            {description && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{description}</p>}
           </div>
           <IconButton onClick={onClose} aria-label="Close dialog">
             <X className="size-4" />
           </IconButton>
         </div>
         <div className="max-h-[70vh] overflow-y-auto px-5 py-4">{children}</div>
-        {footer && <div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-4">{footer}</div>}
+        {footer && <div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-4 dark:border-slate-700">{footer}</div>}
       </div>
     </div>,
     document.body

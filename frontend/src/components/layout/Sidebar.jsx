@@ -88,7 +88,7 @@ export function SidebarContent({ role, onNavigate }) {
         ))}
       </nav>
       <div className="border-t border-slate-800 px-5 py-4">
-        <p className="text-[11px] text-slate-500">TransitOps &copy; 2026 &middot; RBAC Enabled</p>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400">TransitOps &copy; 2026 &middot; RBAC Enabled</p>
       </div>
     </div>
   )

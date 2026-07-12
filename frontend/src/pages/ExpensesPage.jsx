@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Plus, Fuel, Receipt } from 'lucide-react'
 import { Button } from '@/components/common/Button'
 import { Tabs } from '@/components/common/Tabs'
@@ -13,6 +13,9 @@ import { ExpenseForm } from '@/components/expenses/ExpenseForm'
 import { useToast } from '@/hooks/useToast'
 import { MODULES, ACTIONS } from '@/config/permissions'
 import * as expenseService from '@/services/expenseService'
+import * as fleetService from '@/services/fleetService'
+import * as tripService from '@/services/tripService'
+import * as maintenanceService from '@/services/maintenanceService'
 
 const TABS = [
   { value: 'fuel', label: 'Fuel Logs', icon: Fuel },
@@ -26,6 +29,9 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true)
   const [fuelLogs, setFuelLogs] = useState([])
   const [expenses, setExpenses] = useState([])
+  const [vehicles, setVehicles] = useState([])
+  const [trips, setTrips] = useState([])
+  const [maintenanceRecords, setMaintenanceRecords] = useState([])
 
   const [fuelModal, setFuelModal] = useState({ open: false, editing: null })
   const [expenseModal, setExpenseModal] = useState({ open: false, editing: null })
@@ -33,10 +39,21 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([expenseService.getFuelLogs(), expenseService.getExpenses()]).then(([logs, exp]) => {
+    // Financial Analyst has no Trips module access — fall back to an empty
+    // list rather than let that 403 break the whole page.
+    Promise.all([
+      expenseService.getFuelLogs(),
+      expenseService.getExpenses(),
+      fleetService.getVehicles().catch(() => []),
+      tripService.getTrips().catch(() => []),
+      maintenanceService.getMaintenanceRecords().catch(() => []),
+    ]).then(([logs, exp, vehicleData, tripData, maintenanceData]) => {
       if (!cancelled) {
         setFuelLogs(logs)
         setExpenses(exp)
+        setVehicles(vehicleData)
+        setTrips(tripData)
+        setMaintenanceRecords(maintenanceData)
         setLoading(false)
       }
     })
@@ -44,6 +61,8 @@ export default function ExpensesPage() {
       cancelled = true
     }
   }, [])
+
+  const vehiclesById = useMemo(() => new Map(vehicles.map((v) => [v.id, v])), [vehicles])
 
   async function handleFuelSubmit(payload) {
     setSubmitting(true)
@@ -100,11 +119,16 @@ export default function ExpensesPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-lg font-semibold text-slate-900">Fuel &amp; Expenses</h1>
-        <p className="text-sm text-slate-500">Track fuel consumption, operating costs and other vehicle expenses.</p>
+        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Fuel &amp; Expenses</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Track fuel consumption, operating costs and other vehicle expenses.</p>
       </div>
 
-      <ExpenseSummaryCards fuelLogs={fuelLogs} expenses={expenses} />
+      <ExpenseSummaryCards
+        fuelLogs={fuelLogs}
+        expenses={expenses}
+        maintenanceRecords={maintenanceRecords}
+        trips={trips}
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Tabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
@@ -126,18 +150,20 @@ export default function ExpensesPage() {
       </div>
 
       {loading ? (
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <TableSkeleton rows={6} cols={7} />
         </div>
       ) : activeTab === 'fuel' ? (
         <FuelLogTable
           logs={fuelLogs}
+          vehicles={vehiclesById}
           onEdit={(log) => setFuelModal({ open: true, editing: log })}
           onDelete={handleFuelDelete}
         />
       ) : (
         <ExpenseTable
           expenses={expenses}
+          vehicles={vehiclesById}
           onEdit={(expense) => setExpenseModal({ open: true, editing: expense })}
           onDelete={handleExpenseDelete}
         />
@@ -154,6 +180,7 @@ export default function ExpensesPage() {
           onSubmit={handleFuelSubmit}
           onCancel={() => setFuelModal({ open: false, editing: null })}
           submitting={submitting}
+          vehicles={vehicles}
         />
       </Modal>
 
@@ -168,6 +195,8 @@ export default function ExpensesPage() {
           onSubmit={handleExpenseSubmit}
           onCancel={() => setExpenseModal({ open: false, editing: null })}
           submitting={submitting}
+          vehicles={vehicles}
+          trips={trips}
         />
       </Modal>
     </div>

@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { PermissionGate } from '@/components/common/PermissionGate'
 import { Skeleton } from '@/components/common/Skeleton'
+import { DocumentsCard } from '@/components/documents/DocumentsCard'
 import { MODULES, ACTIONS, ACCESS_LEVELS } from '@/config/permissions'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/hooks/useToast'
@@ -70,7 +71,7 @@ export default function VehicleDetailsPage() {
 
   if (vehicle === null) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <EmptyState
           icon={Truck}
           title="Vehicle not found"
@@ -95,15 +96,15 @@ export default function VehicleDetailsPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <Link to="/fleet" className="mb-1 inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
+          <Link to="/fleet" className="mb-1 inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
             <ArrowLeft className="size-3.5" />
             Back to Fleet
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold text-slate-900">{vehicle.registration}</h1>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{vehicle.registration}</h1>
             <StatusBadge status={vehicle.status} label={VEHICLE_STATUS_LABELS[vehicle.status]} />
           </div>
-          <p className="text-sm text-slate-500">{vehicle.model}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{vehicle.model}</p>
         </div>
         <div className="flex items-center gap-2">
           <PermissionGate module={MODULES.FLEET} action={ACTIONS.EDIT}>
@@ -161,7 +162,7 @@ export default function VehicleDetailsPage() {
                 <span className="flex size-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
                   <Gauge className="size-5" />
                 </span>
-                <p className="text-2xl font-semibold text-slate-900">{formatPercent(vehicle.utilisation)}</p>
+                <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{formatPercent(vehicle.utilisation)}</p>
               </div>
               <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
                 <div className="h-full rounded-full bg-brand-500" style={{ width: `${vehicle.utilisation}%` }} />
@@ -198,6 +199,8 @@ export default function VehicleDetailsPage() {
         </div>
       </div>
 
+      <DocumentsCard ownerType="vehicle" ownerId={vehicle.id} />
+
       <ConfirmDialog
         open={confirmRetireOpen}
         onClose={() => setConfirmRetireOpen(false)}
@@ -216,7 +219,7 @@ function DetailRow({ label, value }) {
   return (
     <div>
       <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</dt>
-      <dd className="mt-1 text-sm text-slate-800">{value}</dd>
+      <dd className="mt-1 text-sm text-slate-800 dark:text-slate-200">{value}</dd>
     </div>
   )
 }
@@ -224,8 +227,8 @@ function DetailRow({ label, value }) {
 function SummaryRow({ label, value }) {
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-slate-500">{label}</span>
-      <span className="font-semibold text-slate-900">{value}</span>
+      <span className="text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="font-semibold text-slate-900 dark:text-slate-100">{value}</span>
     </div>
   )
 }

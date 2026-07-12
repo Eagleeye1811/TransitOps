@@ -1,19 +1,56 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ShieldAlert, ShieldX, UserX, UserCheck, Gauge, AlertOctagon } from 'lucide-react'
 import { StatCard } from './StatCard'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { StatusBadge, Badge } from '@/components/common/Badge'
 import { EmptyState } from '@/components/common/EmptyState'
-import { DRIVERS, DRIVER_STATUS, isLicenceExpired, isLicenceExpiringSoon, getDriverById } from '@/data/drivers'
-import { SAFETY_INCIDENTS, INCIDENT_SEVERITY_LABELS } from '@/data/incidents'
+import { CardSkeleton } from '@/components/common/Skeleton'
+import { DRIVER_STATUS, isLicenceExpired, isLicenceExpiringSoon } from '@/data/drivers'
+import { INCIDENT_SEVERITY_LABELS } from '@/data/incidents'
 import { formatDate, timeAgo } from '@/utils/formatters'
+import * as driverService from '@/services/driverService'
+import * as safetyService from '@/services/safetyService'
 
 export function SafetyOfficerDashboard() {
-  const expiring = DRIVERS.filter((d) => isLicenceExpiringSoon(d.licenceExpiry))
-  const expired = DRIVERS.filter((d) => isLicenceExpired(d.licenceExpiry))
-  const suspended = DRIVERS.filter((d) => d.status === DRIVER_STATUS.SUSPENDED)
-  const onDuty = DRIVERS.filter((d) => d.status === DRIVER_STATUS.AVAILABLE || d.status === DRIVER_STATUS.ON_TRIP)
-  const avgScore = Math.round(DRIVERS.reduce((s, d) => s + d.safetyScore, 0) / DRIVERS.length)
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let active = true
+    Promise.all([driverService.getDrivers(), safetyService.getIncidents()])
+      .then(([drivers, incidents]) => {
+        if (!active) return
+        setData({ drivers, incidents })
+        setLoading(false)
+      })
+      .catch(() => {
+        if (!active) return
+        setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  if (loading || !data) {
+    return (
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <CardSkeleton key={i} className="h-40" />
+        ))}
+      </div>
+    )
+  }
+
+  const { drivers, incidents } = data
+  const driversById = new Map(drivers.map((d) => [d.id, d]))
+
+  const expiring = drivers.filter((d) => isLicenceExpiringSoon(d.licenceExpiry))
+  const expired = drivers.filter((d) => isLicenceExpired(d.licenceExpiry))
+  const suspended = drivers.filter((d) => d.status === DRIVER_STATUS.SUSPENDED)
+  const onDuty = drivers.filter((d) => d.status === DRIVER_STATUS.AVAILABLE || d.status === DRIVER_STATUS.ON_TRIP)
+  const avgScore = drivers.length ? Math.round(drivers.reduce((s, d) => s + d.safetyScore, 0) / drivers.length) : 0
 
   return (
     <div className="space-y-6">
@@ -57,17 +94,17 @@ export function SafetyOfficerDashboard() {
             <CardTitle>Recent Safety Incidents</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {SAFETY_INCIDENTS.length === 0 ? (
+            {incidents.length === 0 ? (
               <EmptyState icon={AlertOctagon} title="No incidents recorded" />
             ) : (
               <ul className="divide-y divide-slate-100">
-                {SAFETY_INCIDENTS.slice(0, 5).map((incident) => {
-                  const driver = getDriverById(incident.driverId)
+                {incidents.slice(0, 5).map((incident) => {
+                  const driver = driversById.get(incident.driverId)
                   return (
                     <li key={incident.id} className="flex items-start justify-between gap-3 px-5 py-3.5">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-800">{incident.type}</p>
-                        <p className="mt-0.5 text-xs text-slate-500">
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{incident.type}</p>
+                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                           {driver?.name} &middot; {timeAgo(incident.date)}
                         </p>
                       </div>
@@ -90,10 +127,10 @@ function AlertRow({ driver, label, tone }) {
   return (
     <div className="flex items-center justify-between rounded-lg border border-slate-100 px-3.5 py-2.5">
       <div>
-        <Link to={`/drivers/${driver.id}`} className="text-sm font-medium text-slate-800 hover:text-brand-600">
+        <Link to={`/drivers/${driver.id}`} className="text-sm font-medium text-slate-800 hover:text-brand-600 dark:text-slate-200">
           {driver.name}
         </Link>
-        <p className="text-xs text-slate-500">{label}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
       </div>
       <StatusBadge status={tone === 'red' ? 'expired' : 'expiring'} label={tone === 'red' ? 'Urgent' : 'Warning'} />
     </div>

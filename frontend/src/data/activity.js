@@ -1,0 +1,58 @@
+export const RECENT_ACTIVITY = [
+  {
+    id: 'ACT-001',
+    actor: 'Ravi Kanojia',
+    role: 'Dispatcher',
+    action: 'dispatched trip TRIP-009 (VAN-08 / Rakesh Singh)',
+    timestamp: '2026-07-12T07:55:00+05:30',
+  },
+  {
+    id: 'ACT-002',
+    actor: 'Neha Joshi',
+    role: 'Safety Officer',
+    action: 'suspended driver John Fernandes after harsh-braking incident',
+    timestamp: '2026-07-12T07:10:00+05:30',
+  },
+  {
+    id: 'ACT-003',
+    actor: 'Karan Mehta',
+    role: 'Fleet Manager',
+    action: 'logged maintenance MNT-003 for MINI-03 (tyre replacement)',
+    timestamp: '2026-07-11T14:20:00+05:30',
+  },
+  {
+    id: 'ACT-004',
+    actor: 'Priya Nair',
+    role: 'Financial Analyst',
+    action: 'added fuel log FUEL-006 for PICKUP-06',
+    timestamp: '2026-07-10T18:05:00+05:30',
+  },
+  {
+    id: 'ACT-005',
+    actor: 'Aditya Rao',
+    role: 'Admin',
+    action: 'created user account for Kavita Deshmukh (Dispatcher)',
+    timestamp: '2026-07-09T11:40:00+05:30',
+  },
+  {
+    id: 'ACT-006',
+    actor: 'Ravi Kanojia',
+    role: 'Dispatcher',
+    action: 'cancelled trip TRIP-006 — vehicle sent to shop',
+    timestamp: '2026-07-08T07:10:00+05:30',
+  },
+  {
+    id: 'ACT-007',
+    actor: 'Karan Mehta',
+    role: 'Fleet Manager',
+    action: 'retired vehicle VAN-09 (GJ01AB0087)',
+    timestamp: '2026-07-04T10:15:00+05:30',
+  },
+  {
+    id: 'ACT-008',
+    actor: 'Aditya Rao',
+    role: 'Admin',
+    action: 'updated organisation currency setting to INR',
+    timestamp: '2026-07-02T09:00:00+05:30',
+  },
+]

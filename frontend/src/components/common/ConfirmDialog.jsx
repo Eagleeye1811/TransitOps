@@ -19,14 +19,16 @@ export function ConfirmDialog({
       <div className="flex gap-3">
         <div
           className={`flex size-10 shrink-0 items-center justify-center rounded-full ${
-            tone === 'danger' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
+            tone === 'danger'
+              ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400'
+              : 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
           }`}
         >
           <AlertTriangle className="size-5" />
         </div>
         <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-          {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+          {description && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{description}</p>}
           {children}
         </div>
       </div>

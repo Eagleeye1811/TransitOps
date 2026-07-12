@@ -12,8 +12,8 @@ export default function UnauthorizedPage() {
       <div className="flex size-16 items-center justify-center rounded-full bg-red-50 text-red-500">
         <ShieldAlert className="size-8" />
       </div>
-      <h1 className="mt-5 text-2xl font-bold text-slate-900">Access Denied</h1>
-      <p className="mt-2 max-w-sm text-sm text-slate-500">
+      <h1 className="mt-5 text-2xl font-bold text-slate-900 dark:text-slate-100">Access Denied</h1>
+      <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
         {role
           ? `Your role (${ROLE_LABELS[role] ?? role}) does not have permission to view this page.`
           : 'You do not have permission to view this page.'}

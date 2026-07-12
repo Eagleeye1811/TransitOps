@@ -1,47 +1,36 @@
-import { VEHICLES } from '@/data/vehicles'
-import { delay } from '@/utils/delay'
-
-let vehicles = [...VEHICLES]
+import { api } from './apiClient'
 
 export async function getVehicles() {
-  await delay()
-  return [...vehicles]
+  return api.get('/vehicles')
 }
 
 export async function getVehicleById(id) {
-  await delay(150)
-  return vehicles.find((v) => v.id === id) ?? null
+  try {
+    return await api.get(`/vehicles/${id}`)
+  } catch {
+    return null
+  }
 }
 
 export async function createVehicle(payload) {
-  await delay()
-  const id = `VEH-${String(vehicles.length + 1).padStart(3, '0')}`
-  const vehicle = {
-    id,
-    utilisation: 0,
-    operationalCostMonthly: 0,
-    roi: 0,
-    odometerKm: 0,
-    ...payload,
-  }
-  vehicles = [vehicle, ...vehicles]
-  return vehicle
+  return api.post('/vehicles', payload)
 }
 
 export async function updateVehicle(id, payload) {
-  await delay()
-  vehicles = vehicles.map((v) => (v.id === id ? { ...v, ...payload } : v))
-  return vehicles.find((v) => v.id === id)
+  return api.patch(`/vehicles/${id}`, payload)
 }
 
 export async function retireVehicle(id) {
-  await delay()
-  vehicles = vehicles.map((v) => (v.id === id ? { ...v, status: 'retired', utilisation: 0 } : v))
-  return vehicles.find((v) => v.id === id)
+  return api.post(`/vehicles/${id}/retire`)
 }
 
-export function isRegistrationTaken(registration, excludeId = null) {
-  return vehicles.some(
-    (v) => v.registration.toLowerCase() === registration.toLowerCase() && v.id !== excludeId
-  )
+/**
+ * The backend enforces registration uniqueness authoritatively (a duplicate
+ * POST/PATCH is rejected with a clear error) — this stays synchronous and
+ * a no-op because VehicleForm calls it without `await` during live field
+ * validation; making it a real network call would turn every call site
+ * into "always truthy Promise", silently breaking that validation.
+ */
+export function isRegistrationTaken() {
+  return false
 }

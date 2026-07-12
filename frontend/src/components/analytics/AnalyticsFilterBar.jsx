@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Download, FileText } from 'lucide-react'
 import { Card, CardContent } from '@/components/common/Card'
 import { Field, Input, Select } from '@/components/common/FormControls'
@@ -6,25 +6,52 @@ import { Button } from '@/components/common/Button'
 import { PermissionGate } from '@/components/common/PermissionGate'
 import { MODULES, ACTIONS } from '@/config/permissions'
 import { useToast } from '@/hooks/useToast'
-import { VEHICLES } from '@/data/vehicles'
 import { REGIONS, VEHICLE_TYPES } from '@/data/regions'
+import { getVehicles } from '@/services/fleetService'
 
 /**
  * Filter bar for the Analytics page. The date range / vehicle / region /
  * type filters are illustrative controlled state only — this prototype's
  * chart datasets are static mock aggregates and are not re-computed from
- * these filters. Export buttons are mocked (no real file generation).
+ * these filters. Export buttons call the `onExportCsv` / `onExportPdf`
+ * callbacks supplied by the parent page, which build the report from
+ * whatever data is currently on screen.
  */
-export function AnalyticsFilterBar() {
+export function AnalyticsFilterBar({ onExportCsv, onExportPdf }) {
   const toast = useToast()
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [vehicleId, setVehicleId] = useState('')
   const [region, setRegion] = useState('')
   const [vehicleType, setVehicleType] = useState('')
+  const [vehicles, setVehicles] = useState([])
+
+  useEffect(() => {
+    let active = true
+    // Safety Officer has no Fleet module access at all — this filter is
+    // decorative anyway (see docstring), so just fall back to an empty
+    // list rather than surface the 403.
+    getVehicles()
+      .then((data) => {
+        if (active) setVehicles(data)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
 
   const handleExport = (format) => {
-    toast.success(`Report exported as ${format} (mock).`)
+    try {
+      if (format === 'CSV') {
+        onExportCsv?.()
+      } else {
+        onExportPdf?.()
+      }
+      toast.success(`Report exported as ${format}.`)
+    } catch (err) {
+      toast.error(`Failed to export ${format}: ${err.message}`)
+    }
   }
 
   return (
@@ -40,7 +67,7 @@ export function AnalyticsFilterBar() {
           <Field label="Vehicle">
             <Select value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>
               <option value="">All vehicles</option>
-              {VEHICLES.map((v) => (
+              {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.registration}
                 </option>

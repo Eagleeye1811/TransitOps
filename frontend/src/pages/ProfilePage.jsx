@@ -33,8 +33,8 @@ export default function ProfilePage() {
             {initials(user.name)}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-lg font-semibold text-slate-900">{user.name}</p>
-            <p className="text-sm text-slate-500">{user.email}</p>
+            <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{user.name}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
             <div className="mt-2 flex items-center gap-2">
               <RoleBadge role={user.role} />
               <span className="text-xs text-slate-400">Last login {formatDateTime(user.lastLogin)}</span>

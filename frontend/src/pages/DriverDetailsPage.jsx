@@ -21,6 +21,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { PermissionGate } from '@/components/common/PermissionGate'
 import { Skeleton } from '@/components/common/Skeleton'
+import { DocumentsCard } from '@/components/documents/DocumentsCard'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/hooks/useToast'
 import { MODULES, ACTIONS, ACCESS_LEVELS } from '@/config/permissions'
@@ -31,11 +32,11 @@ import { formatDate } from '@/utils/formatters'
 function DetailItem({ icon: Icon, label, value }) {
   return (
     <div>
-      <dt className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
+      <dt className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {Icon && <Icon className="size-3.5" />}
         {label}
       </dt>
-      <dd className="mt-1 text-sm font-medium text-slate-900">{value}</dd>
+      <dd className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">{value}</dd>
     </div>
   )
 }
@@ -115,15 +116,15 @@ export default function DriverDetailsPage() {
           <button
             type="button"
             onClick={() => navigate('/drivers')}
-            className="mb-2 inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
+            className="mb-2 inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
           >
             <ArrowLeft className="size-3.5" /> Back to Drivers
           </button>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-lg font-semibold text-slate-900">{driver.name}</h1>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{driver.name}</h1>
             <StatusBadge status={driver.status} label={DRIVER_STATUS_LABELS[driver.status]} />
           </div>
-          <p className="text-sm text-slate-500">Driver ID: {driver.id}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Driver ID: {driver.id}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -236,16 +237,18 @@ export default function DriverDetailsPage() {
                 Currently assigned to <span className="font-medium">{driver.currentAssignment}</span>
               </div>
             ) : (
-              <p className="text-sm text-slate-500">No active trip assignment.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">No active trip assignment.</p>
             )}
             <div className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 text-sm">
-              <span className="text-slate-500">Total trips completed</span>
-              <span className="font-semibold text-slate-900">{driver.tripsCompleted}</span>
+              <span className="text-slate-500 dark:text-slate-400">Total trips completed</span>
+              <span className="font-semibold text-slate-900 dark:text-slate-100">{driver.tripsCompleted}</span>
             </div>
             <p className="text-xs text-slate-400">Detailed trip logs are available in the Trips module.</p>
           </CardContent>
         </Card>
       </div>
+
+      <DocumentsCard ownerType="driver" ownerId={driver.id} />
 
       <ConfirmDialog
         open={confirmAction === 'suspend'}

@@ -66,8 +66,8 @@ export default function DriversListPage() {
     <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">Drivers</h1>
-          <p className="text-sm text-slate-500">Manage driver records, licences, safety scores and availability.</p>
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Drivers</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Manage driver records, licences, safety scores and availability.</p>
         </div>
         <PermissionGate module={MODULES.DRIVERS} action={ACTIONS.CREATE}>
           <Link to="/drivers/new">
@@ -82,7 +82,7 @@ export default function DriversListPage() {
       <DriverFilters filters={filters} onChange={setFilters} />
 
       {loading ? (
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <TableSkeleton rows={8} cols={7} />
         </div>
       ) : filtered.length === 0 ? (

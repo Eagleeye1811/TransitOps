@@ -1,55 +1,35 @@
-import { FUEL_LOGS, EXPENSES } from '@/data/fuelLogs'
-import { delay } from '@/utils/delay'
-
-let fuelLogs = [...FUEL_LOGS]
-let expenses = [...EXPENSES]
+import { api } from './apiClient'
 
 export async function getFuelLogs() {
-  await delay()
-  return [...fuelLogs]
+  return api.get('/fuel-logs')
 }
 
 export async function createFuelLog(payload) {
-  await delay()
-  const id = `FUEL-${String(fuelLogs.length + 1).padStart(3, '0')}`
-  const log = { id, ...payload }
-  fuelLogs = [log, ...fuelLogs]
-  return log
+  return api.post('/fuel-logs', payload)
 }
 
 export async function updateFuelLog(id, payload) {
-  await delay()
-  fuelLogs = fuelLogs.map((f) => (f.id === id ? { ...f, ...payload } : f))
-  return fuelLogs.find((f) => f.id === id)
+  return api.patch(`/fuel-logs/${id}`, payload)
 }
 
 export async function deleteFuelLog(id) {
-  await delay()
-  fuelLogs = fuelLogs.filter((f) => f.id !== id)
+  await api.delete(`/fuel-logs/${id}`)
   return true
 }
 
 export async function getExpenses() {
-  await delay()
-  return [...expenses]
+  return api.get('/expenses')
 }
 
 export async function createExpense(payload) {
-  await delay()
-  const id = `EXP-${String(expenses.length + 1).padStart(3, '0')}`
-  const expense = { id, ...payload }
-  expenses = [expense, ...expenses]
-  return expense
+  return api.post('/expenses', payload)
 }
 
 export async function updateExpense(id, payload) {
-  await delay()
-  expenses = expenses.map((e) => (e.id === id ? { ...e, ...payload } : e))
-  return expenses.find((e) => e.id === id)
+  return api.patch(`/expenses/${id}`, payload)
 }
 
 export async function deleteExpense(id) {
-  await delay()
-  expenses = expenses.filter((e) => e.id !== id)
+  await api.delete(`/expenses/${id}`)
   return true
 }

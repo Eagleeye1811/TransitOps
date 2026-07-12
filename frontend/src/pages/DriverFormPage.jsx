@@ -103,10 +103,10 @@ export default function DriverFormPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-lg font-semibold text-slate-900">
+        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
           {isEdit ? `Edit Driver — ${driver.name}` : 'Add Driver'}
         </h1>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           {isEdit
             ? mode === 'operational'
               ? 'Only the contact number can be updated from this view.'

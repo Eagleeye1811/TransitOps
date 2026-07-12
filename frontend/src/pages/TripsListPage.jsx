@@ -9,11 +9,15 @@ import { TripFilters } from '@/components/trips/TripFilters'
 import { TripTable } from '@/components/trips/TripTable'
 import { MODULES, ACTIONS } from '@/config/permissions'
 import * as tripService from '@/services/tripService'
+import * as fleetService from '@/services/fleetService'
+import * as driverService from '@/services/driverService'
 
 const PAGE_SIZE = 8
 
 export default function TripsListPage() {
   const [trips, setTrips] = useState([])
+  const [vehicles, setVehicles] = useState(new Map())
+  const [drivers, setDrivers] = useState(new Map())
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
@@ -22,9 +26,19 @@ export default function TripsListPage() {
 
   useEffect(() => {
     let active = true
-    tripService.getTrips().then((data) => {
+    // Vehicles/drivers are only used for name resolution in the table and
+    // some roles that can view Trips (e.g. Safety Officer) have no Fleet or
+    // Drivers module access at all — fall back to empty maps rather than
+    // let a 403 on either of those break the page.
+    Promise.all([
+      tripService.getTrips(),
+      fleetService.getVehicles().catch(() => []),
+      driverService.getDrivers().catch(() => []),
+    ]).then(([tripData, vehicleData, driverData]) => {
       if (!active) return
-      setTrips(data)
+      setTrips(tripData)
+      setVehicles(new Map(vehicleData.map((v) => [v.id, v])))
+      setDrivers(new Map(driverData.map((d) => [d.id, d])))
       setLoading(false)
     })
     return () => {
@@ -57,8 +71,8 @@ export default function TripsListPage() {
     <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">Trips</h1>
-          <p className="mt-0.5 text-sm text-slate-500">Plan, dispatch and track fleet trips.</p>
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Trips</h1>
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Plan, dispatch and track fleet trips.</p>
         </div>
         <PermissionGate module={MODULES.TRIPS} action={ACTIONS.CREATE}>
           <Link to="/trips/new">
@@ -80,14 +94,14 @@ export default function TripsListPage() {
       />
 
       {loading ? (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <TableSkeleton rows={PAGE_SIZE} cols={7} />
         </div>
       ) : (
         <>
-          <TripTable trips={paged} />
+          <TripTable trips={paged} vehicles={vehicles} drivers={drivers} />
           {filtered.length > 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
               <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
             </div>
           )}
