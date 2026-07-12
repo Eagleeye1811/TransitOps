@@ -62,7 +62,7 @@ export function RolesPermissionsTable() {
                 return (
                   <TD key={col.key}>
                     <Tooltip content={`Every role has full access to their own scoped dashboard: ${dashboardName}.`}>
-                      <span className="inline-flex cursor-default items-center gap-1.5 whitespace-nowrap rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                      <span className="inline-flex cursor-default items-center gap-1.5 whitespace-nowrap rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/30">
                         <LayoutDashboard className="size-3.5" />
                         {dashboardName}
                       </span>

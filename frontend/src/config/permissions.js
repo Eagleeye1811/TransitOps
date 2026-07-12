@@ -47,16 +47,16 @@ export const ACCESS_LEVEL_LABELS = {
 }
 
 export const ACCESS_LEVEL_BADGE_CLASSES = {
-  [ACCESS_LEVELS.FULL]: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-  [ACCESS_LEVELS.VIEW]: 'bg-blue-50 text-blue-700 ring-blue-600/20',
-  [ACCESS_LEVELS.OPERATIONAL_VIEW]: 'bg-indigo-50 text-indigo-700 ring-indigo-600/20',
-  [ACCESS_LEVELS.AVAILABILITY_VIEW]: 'bg-cyan-50 text-cyan-700 ring-cyan-600/20',
-  [ACCESS_LEVELS.FINANCIAL_VIEW]: 'bg-purple-50 text-purple-700 ring-purple-600/20',
-  [ACCESS_LEVELS.COST_VIEW]: 'bg-amber-50 text-amber-700 ring-amber-600/20',
-  [ACCESS_LEVELS.FLEET_ANALYTICS]: 'bg-teal-50 text-teal-700 ring-teal-600/20',
-  [ACCESS_LEVELS.SAFETY_REPORTS]: 'bg-rose-50 text-rose-700 ring-rose-600/20',
-  [ACCESS_LEVELS.FINANCIAL_ANALYTICS]: 'bg-violet-50 text-violet-700 ring-violet-600/20',
-  [ACCESS_LEVELS.NO_ACCESS]: 'bg-gray-100 text-gray-500 ring-gray-400/20',
+  [ACCESS_LEVELS.FULL]: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/30',
+  [ACCESS_LEVELS.VIEW]: 'bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/30',
+  [ACCESS_LEVELS.OPERATIONAL_VIEW]: 'bg-indigo-50 text-indigo-700 ring-indigo-600/20 dark:bg-indigo-500/10 dark:text-indigo-400 dark:ring-indigo-500/30',
+  [ACCESS_LEVELS.AVAILABILITY_VIEW]: 'bg-cyan-50 text-cyan-700 ring-cyan-600/20 dark:bg-cyan-500/10 dark:text-cyan-400 dark:ring-cyan-500/30',
+  [ACCESS_LEVELS.FINANCIAL_VIEW]: 'bg-purple-50 text-purple-700 ring-purple-600/20 dark:bg-purple-500/10 dark:text-purple-400 dark:ring-purple-500/30',
+  [ACCESS_LEVELS.COST_VIEW]: 'bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/30',
+  [ACCESS_LEVELS.FLEET_ANALYTICS]: 'bg-teal-50 text-teal-700 ring-teal-600/20 dark:bg-teal-500/10 dark:text-teal-400 dark:ring-teal-500/30',
+  [ACCESS_LEVELS.SAFETY_REPORTS]: 'bg-rose-50 text-rose-700 ring-rose-600/20 dark:bg-rose-500/10 dark:text-rose-400 dark:ring-rose-500/30',
+  [ACCESS_LEVELS.FINANCIAL_ANALYTICS]: 'bg-violet-50 text-violet-700 ring-violet-600/20 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-500/30',
+  [ACCESS_LEVELS.NO_ACCESS]: 'bg-gray-100 text-gray-500 ring-gray-400/20 dark:bg-slate-700 dark:text-slate-400 dark:ring-slate-500/30',
 }
 
 // ----------------------------------------------------------------------------
