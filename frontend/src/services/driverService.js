@@ -1,40 +1,25 @@
-import { DRIVERS } from '@/data/drivers'
-import { delay } from '@/utils/delay'
-
-let drivers = [...DRIVERS]
+import { api } from './apiClient'
 
 export async function getDrivers() {
-  await delay()
-  return [...drivers]
+  return api.get('/drivers')
 }
 
 export async function getDriverById(id) {
-  await delay(150)
-  return drivers.find((d) => d.id === id) ?? null
+  try {
+    return await api.get(`/drivers/${id}`)
+  } catch {
+    return null
+  }
 }
 
 export async function createDriver(payload) {
-  await delay()
-  const id = `DRV-${String(drivers.length + 1).padStart(3, '0')}`
-  const driver = {
-    id,
-    safetyScore: 100,
-    tripsCompleted: 0,
-    currentAssignment: null,
-    ...payload,
-  }
-  drivers = [driver, ...drivers]
-  return driver
+  return api.post('/drivers', payload)
 }
 
 export async function updateDriver(id, payload) {
-  await delay()
-  drivers = drivers.map((d) => (d.id === id ? { ...d, ...payload } : d))
-  return drivers.find((d) => d.id === id)
+  return api.patch(`/drivers/${id}`, payload)
 }
 
 export async function updateDriverStatus(id, status) {
-  await delay()
-  drivers = drivers.map((d) => (d.id === id ? { ...d, status } : d))
-  return drivers.find((d) => d.id === id)
+  return api.patch(`/drivers/${id}/status`, { status })
 }

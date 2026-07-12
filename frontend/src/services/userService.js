@@ -1,36 +1,30 @@
-import { USERS } from '@/data/users'
-import { delay } from '@/utils/delay'
-
-// eslint-disable-next-line no-unused-vars
-let users = USERS.map(({ password, ...rest }) => rest)
+import { api } from './apiClient'
 
 export async function getUsers() {
-  await delay()
-  return [...users]
+  return api.get('/users')
 }
 
 export async function createUser(payload) {
-  await delay()
-  const id = `USR-${String(users.length + 1).padStart(3, '0')}`
-  const user = { id, status: 'active', createdAt: new Date().toISOString(), lastLogin: null, ...payload }
-  users = [user, ...users]
-  return user
+  // UserForm doesn't collect a password (the product spec never asked for
+  // one at creation time) — the backend requires one to hash & store, so
+  // generate a temporary one here. A real deployment would email this / a
+  // reset link to the new user; that's out of scope for this prototype.
+  const temporaryPassword = `Welcome@${Math.floor(1000 + Math.random() * 9000)}`
+  return api.post('/users', { ...payload, password: temporaryPassword })
 }
 
 export async function updateUser(id, payload) {
-  await delay()
-  users = users.map((u) => (u.id === id ? { ...u, ...payload } : u))
-  return users.find((u) => u.id === id)
+  return api.patch(`/users/${id}`, payload)
 }
 
 export async function setUserStatus(id, status) {
-  return updateUser(id, { status })
+  return api.patch(`/users/${id}/status`, { status })
 }
 
 export async function assignRole(id, role) {
-  return updateUser(id, { role })
+  return api.patch(`/users/${id}/role`, { role })
 }
 
 export async function resetAccount(id) {
-  return updateUser(id, { status: 'active' })
+  return api.post(`/users/${id}/reset`)
 }

@@ -56,14 +56,14 @@ export default function LoginPage() {
       return
     }
 
-    login(result.user, form.rememberMe)
+    login(result.user, result.token, form.rememberMe)
     toast.success(`Welcome back, ${result.user.name.split(' ')[0]}.`)
     const redirectTo = location.state?.from?.pathname ?? '/dashboard'
     navigate(redirectTo, { replace: true })
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Branding panel */}
       <div className="relative hidden w-[42%] flex-col justify-between overflow-hidden bg-gradient-to-br from-slate-900 via-brand-950 to-slate-900 px-10 py-12 text-white lg:flex">
         <div className="absolute -right-24 -top-24 size-72 rounded-full bg-brand-600/20 blur-3xl" />
@@ -113,14 +113,14 @@ export default function LoginPage() {
             <div className="flex size-9 items-center justify-center rounded-lg bg-brand-600 text-white">
               <Truck className="size-5" />
             </div>
-            <span className="text-lg font-bold text-slate-900">TransitOps</span>
+            <span className="text-lg font-bold text-slate-900 dark:text-slate-100">TransitOps</span>
           </div>
 
-          <h1 className="text-2xl font-bold text-slate-900">Sign in to your account</h1>
-          <p className="mt-1.5 text-sm text-slate-500">Enter your credentials to continue.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Sign in to your account</h1>
+          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">Enter your credentials to continue.</p>
 
           {formError && (
-            <div className="mt-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700">
+            <div className="mt-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-500/10 dark:text-red-400">
               <AlertCircle className="mt-0.5 size-4 shrink-0" />
               <span>{formError}</span>
             </div>
@@ -193,7 +193,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 flex items-start gap-2 rounded-lg bg-slate-100 px-3.5 py-3 text-xs text-slate-500">
+          <div className="mt-6 flex items-start gap-2 rounded-lg bg-slate-100 px-3.5 py-3 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-slate-400" />
             <span>
               Your session is verified against the role stored on your account — the role picked
@@ -201,8 +201,8 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
-            <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+            <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               <Info className="size-3.5" />
               Demo accounts
             </p>
@@ -212,15 +212,15 @@ export default function LoginPage() {
                   key={account.role}
                   type="button"
                   onClick={() => fillDemo(account)}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-left text-xs transition-colors hover:border-brand-300 hover:bg-brand-50"
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-left text-xs transition-colors hover:border-brand-300 hover:bg-brand-50 dark:border-slate-600 dark:hover:border-brand-700 dark:hover:bg-brand-500/10"
                 >
-                  <p className="font-semibold text-slate-800">{ROLE_LABELS[account.role]}</p>
-                  <p className="truncate text-slate-500">{account.email}</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">{ROLE_LABELS[account.role]}</p>
+                  <p className="truncate text-slate-500 dark:text-slate-400">{account.email}</p>
                 </button>
               ))}
             </div>
             <p className="mt-3 text-[11px] text-slate-400">
-              Password for every demo account: <code className="rounded bg-slate-100 px-1 py-0.5 font-mono">{DEMO_PASSWORD}</code>
+              Password for every demo account: <code className="rounded bg-slate-100 px-1 py-0.5 font-mono dark:bg-slate-700 dark:text-slate-300">{DEMO_PASSWORD}</code>
             </p>
           </div>
         </div>
