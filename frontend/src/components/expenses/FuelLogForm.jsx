@@ -14,12 +14,28 @@ const EMPTY_VALUES = {
 
 /** Shared create/edit form for fuel logs, used inside a Modal. `vehicles`
  * is fetched once by the parent page. */
+const FUEL_PRICE_PER_LITRE = 102 // ₹/L, used to auto-suggest cost from quantity
+
 export function FuelLogForm({ initialValues, onSubmit, onCancel, submitting = false, vehicles = [] }) {
   const [values, setValues] = useState({ ...EMPTY_VALUES, ...initialValues })
   const [errors, setErrors] = useState({})
+  const [costTouched, setCostTouched] = useState(Boolean(initialValues?.cost))
 
   function update(patch) {
     setValues((v) => ({ ...v, ...patch }))
+  }
+
+  function updateQuantity(quantityLitres) {
+    const patch = { quantityLitres }
+    if (!costTouched && quantityLitres !== '') {
+      patch.cost = String(Math.round(Number(quantityLitres) * FUEL_PRICE_PER_LITRE))
+    }
+    update(patch)
+  }
+
+  function updateCost(cost) {
+    setCostTouched(true)
+    update({ cost })
   }
 
   function validate() {
@@ -70,14 +86,14 @@ export function FuelLogForm({ initialValues, onSubmit, onCancel, submitting = fa
             min="0"
             step="0.01"
             value={values.quantityLitres}
-            onChange={(e) => update({ quantityLitres: e.target.value })}
+            onChange={(e) => updateQuantity(e.target.value)}
           />
         </Field>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="Cost (₹)" htmlFor="cost" required error={errors.cost}>
-          <Input id="cost" type="number" min="0" step="1" value={values.cost} onChange={(e) => update({ cost: e.target.value })} />
+          <Input id="cost" type="number" min="0" step="1" value={values.cost} onChange={(e) => updateCost(e.target.value)} />
         </Field>
         <Field label="Odometer Reading (km)" htmlFor="odometerKm" required error={errors.odometerKm}>
           <Input

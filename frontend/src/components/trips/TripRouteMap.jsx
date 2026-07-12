@@ -1,35 +1,57 @@
 import { useEffect, useRef, useState } from 'react'
-import mapboxgl from 'mapbox-gl'
-import 'mapbox-gl/dist/mapbox-gl.css'
-import { MapPinned, MapPin } from 'lucide-react'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import markerIcon2xUrl from 'leaflet/dist/images/marker-icon-2x.png'
+import markerIconUrl from 'leaflet/dist/images/marker-icon.png'
+import markerShadowUrl from 'leaflet/dist/images/marker-shadow.png'
+import { MapPin } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
+// Vite doesn't rewrite Leaflet's CSS-embedded default marker URLs, so the
+// bundled images 404 unless wired up explicitly.
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2xUrl,
+  iconUrl: markerIconUrl,
+  shadowUrl: markerShadowUrl,
+})
+
+function coloredIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<span style="display:block;width:16px;height:16px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 0 0 1px rgba(0,0,0,0.25)"></span>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+  })
+}
 
 // Fallback map center when geocoding a fictional/demo place name fails:
 // Ahmedabad, Gujarat.
 const DEFAULT_CENTER = { lat: 23.0225, lng: 72.5714 }
 
-async function geocode(query) {
+// Nominatim (OpenStreetMap's free geocoder) and OSRM's public demo routing
+// server — both free, no API key required.
+async function geocode(query, region) {
   if (!query) return null
-  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-    query
-  )}.json?access_token=${MAPBOX_TOKEN}&country=IN&limit=1`
+  // Trip source/destination are often fictional depot/hub names with no
+  // real-world match — appending the trip's region steers Nominatim's fuzzy
+  // matching toward the right part of the country instead of a same-named
+  // place on the other side of India.
+  const fullQuery = region ? `${query}, ${region}` : query
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fullQuery)}&format=json&limit=1&countrycodes=in`
   try {
-    const res = await fetch(url)
+    const res = await fetch(url, { headers: { Accept: 'application/json' } })
     if (!res.ok) return null
     const data = await res.json()
-    const feature = data?.features?.[0]
-    if (!feature?.center) return null
-    const [lng, lat] = feature.center
-    return { lat, lng }
+    const result = data?.[0]
+    if (!result) return null
+    return { lat: Number(result.lat), lng: Number(result.lon) }
   } catch {
     return null
   }
 }
 
 async function fetchRouteGeoJson(from, to) {
-  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${from.lng},${from.lat};${to.lng},${to.lat}?geometries=geojson&access_token=${MAPBOX_TOKEN}`
+  const url = `https://router.project-osrm.org/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?geometries=geojson&overview=full`
   try {
     const res = await fetch(url)
     if (!res.ok) return null
@@ -45,35 +67,34 @@ async function fetchRouteGeoJson(from, to) {
 /**
  * Static trip-route map, rendered on the Trip Details page.
  *
- * Degrades gracefully to a placeholder card when VITE_MAPBOX_TOKEN is not
- * configured (no network calls are attempted in that case). When a token is
- * present, it geocodes `source`/`destination` (or uses the optional
- * pre-set lat/lng overrides), draws markers + a driving route line, and
- * fits the map to both points. Since `source`/`destination` are often
+ * Uses Leaflet with OpenStreetMap tiles — free, no API key required.
+ * Geocodes `source`/`destination` (or uses the optional pre-set lat/lng
+ * overrides) via Nominatim, draws markers + a driving route line via OSRM,
+ * and fits the map to both points. Since `source`/`destination` are often
  * fictional depot/hub names for this demo dataset, geocoding may fail or
  * be inaccurate — in that case the map falls back to a fixed default
  * center and shows an inline "approximate location" note.
  */
-export function TripRouteMap({ source, destination, sourceLat, sourceLng, destinationLat, destinationLng }) {
+export function TripRouteMap({ source, destination, sourceLat, sourceLng, destinationLat, destinationLng, region }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const [approximate, setApproximate] = useState(false)
   const [status, setStatus] = useState('loading') // 'loading' | 'ready' | 'error'
 
   useEffect(() => {
-    if (!MAPBOX_TOKEN) return undefined
-
     let cancelled = false
-    mapboxgl.accessToken = MAPBOX_TOKEN
 
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [DEFAULT_CENTER.lng, DEFAULT_CENTER.lat],
+    const map = L.map(containerRef.current, {
+      center: [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng],
       zoom: 6,
+      zoomControl: false,
     })
     mapRef.current = map
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+    L.control.zoom({ position: 'topright' }).addTo(map)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }).addTo(map)
 
     async function build() {
       try {
@@ -81,8 +102,8 @@ export function TripRouteMap({ source, destination, sourceLat, sourceLng, destin
         const hasDestOverride = destinationLat != null && destinationLng != null
 
         const [geocodedSource, geocodedDest] = await Promise.all([
-          hasSourceOverride ? Promise.resolve(null) : geocode(source),
-          hasDestOverride ? Promise.resolve(null) : geocode(destination),
+          hasSourceOverride ? Promise.resolve(null) : geocode(source, region),
+          hasDestOverride ? Promise.resolve(null) : geocode(destination, region),
         ])
 
         let from = hasSourceOverride ? { lat: sourceLat, lng: sourceLng } : geocodedSource
@@ -99,36 +120,27 @@ export function TripRouteMap({ source, destination, sourceLat, sourceLng, destin
 
         setApproximate(usedFallback)
 
-        function addMarkersAndRoute() {
-          new mapboxgl.Marker({ color: '#059669' }).setLngLat([from.lng, from.lat]).addTo(map)
-          new mapboxgl.Marker({ color: '#dc2626' }).setLngLat([to.lng, to.lat]).addTo(map)
+        L.marker([from.lat, from.lng], { icon: coloredIcon('#059669') }).addTo(map)
+        L.marker([to.lat, to.lng], { icon: coloredIcon('#dc2626') }).addTo(map)
 
-          const bounds = new mapboxgl.LngLatBounds()
-          bounds.extend([from.lng, from.lat])
-          bounds.extend([to.lng, to.lat])
-          map.fitBounds(bounds, { padding: 60, maxZoom: 12, duration: 0 })
+        const bounds = L.latLngBounds([from.lat, from.lng], [to.lat, to.lng])
+        map.fitBounds(bounds, { padding: [60, 60], maxZoom: 12 })
 
-          fetchRouteGeoJson(from, to).then((geometry) => {
-            if (cancelled || !geometry || !map.getStyle()) return
-            if (map.getSource('trip-route')) return
-            map.addSource('trip-route', {
-              type: 'geojson',
-              data: { type: 'Feature', properties: {}, geometry },
-            })
-            map.addLayer({
-              id: 'trip-route-line',
-              type: 'line',
-              source: 'trip-route',
-              layout: { 'line-join': 'round', 'line-cap': 'round' },
-              paint: { 'line-color': '#2563eb', 'line-width': 4, 'line-opacity': 0.85 },
-            })
-          })
-        }
-
-        if (map.isStyleLoaded()) {
-          addMarkersAndRoute()
+        const geometry = await fetchRouteGeoJson(from, to)
+        if (cancelled) return
+        if (geometry) {
+          L.geoJSON(geometry, {
+            style: { color: '#2563eb', weight: 4, opacity: 0.85 },
+          }).addTo(map)
         } else {
-          map.once('load', addMarkersAndRoute)
+          // No route available (e.g. offline/demo coordinates) — draw a
+          // straight line between the two points instead.
+          L.polyline([[from.lat, from.lng], [to.lat, to.lng]], {
+            color: '#2563eb',
+            weight: 3,
+            opacity: 0.6,
+            dashArray: '6 6',
+          }).addTo(map)
         }
 
         if (!cancelled) setStatus('ready')
@@ -144,28 +156,7 @@ export function TripRouteMap({ source, destination, sourceLat, sourceLng, destin
       map.remove()
       mapRef.current = null
     }
-  }, [source, destination, sourceLat, sourceLng, destinationLat, destinationLng])
-
-  if (!MAPBOX_TOKEN) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Route</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-6 text-center">
-            <MapPinned className="size-8 text-slate-300" />
-            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Map requires a Mapbox access token</p>
-            <p className="max-w-sm text-xs text-slate-400 dark:text-slate-500">
-              Add <code className="rounded bg-slate-200 px-1 py-0.5 text-slate-600 dark:bg-slate-800 dark:text-slate-400">VITE_MAPBOX_TOKEN</code> to your{' '}
-              <code className="rounded bg-slate-200 px-1 py-0.5 text-slate-600 dark:bg-slate-800 dark:text-slate-400">.env</code> to enable live route
-              visualization.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+  }, [source, destination, sourceLat, sourceLng, destinationLat, destinationLng, region])
 
   return (
     <Card>

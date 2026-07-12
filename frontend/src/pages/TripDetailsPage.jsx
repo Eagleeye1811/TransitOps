@@ -256,7 +256,7 @@ export default function TripDetailsPage() {
         </Card>
       </div>
 
-      <TripRouteMap source={trip.source} destination={trip.destination} />
+      <TripRouteMap source={trip.source} destination={trip.destination} region={trip.region} />
 
       <ConfirmDialog
         open={dispatchOpen}

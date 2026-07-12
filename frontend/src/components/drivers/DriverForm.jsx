@@ -4,6 +4,10 @@ import { Button } from '@/components/common/Button'
 import { LICENCE_CATEGORIES } from '@/data/drivers'
 import { REGIONS } from '@/data/regions'
 
+// Indian DL format: 2-letter state code + dash + 13 digits (2-digit RTO code
+// + 4-digit year of issue + 7-digit unique number), e.g. MH-1420110012345.
+const LICENCE_NUMBER_PATTERN = /^[A-Z]{2}-\d{13}$/i
+
 const EMPTY_VALUES = {
   name: '',
   licenceNumber: '',
@@ -35,7 +39,11 @@ export function DriverForm({ initialValues, onSubmit, submitting = false, mode =
     if (!values.name.trim()) nextErrors.name = 'Full name is required'
     if (!values.contact.trim()) nextErrors.contact = 'Contact number is required'
     if (!readOnly) {
-      if (!values.licenceNumber.trim()) nextErrors.licenceNumber = 'Licence number is required'
+      if (!values.licenceNumber.trim()) {
+        nextErrors.licenceNumber = 'Licence number is required'
+      } else if (!LICENCE_NUMBER_PATTERN.test(values.licenceNumber.trim())) {
+        nextErrors.licenceNumber = 'Enter a valid licence number in the format MH-1420110012345 (state code + 13 digits)'
+      }
       if (!values.licenceExpiry) nextErrors.licenceExpiry = 'Licence expiry date is required'
       if (values.safetyScore !== '' && (Number(values.safetyScore) < 0 || Number(values.safetyScore) > 100)) {
         nextErrors.safetyScore = 'Safety score must be between 0 and 100'
@@ -74,7 +82,7 @@ export function DriverForm({ initialValues, onSubmit, submitting = false, mode =
         </Field>
 
         <Field label="Licence Number" htmlFor="licenceNumber" required={!readOnly} error={errors.licenceNumber} hint={lockedHint}>
-          <Input id="licenceNumber" value={values.licenceNumber} onChange={setField('licenceNumber')} disabled={readOnly} placeholder="DL-XXXXX" />
+          <Input id="licenceNumber" value={values.licenceNumber} onChange={setField('licenceNumber')} disabled={readOnly} placeholder="MH-1420110012345" />
         </Field>
 
         <Field label="Licence Category" htmlFor="licenceCategory" required hint={lockedHint}>
