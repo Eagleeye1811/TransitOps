@@ -16,6 +16,11 @@ def send_email(*, to: str, subject: str, html: str) -> bool:
         logger.info("[DEV MODE — no RESEND_API_KEY set] Would send email to %s: %s\n%s", to, subject, html)
         return False
 
+    actual_to = to
+    if settings.DEMO_RECIPIENT_OVERRIDE:
+        logger.info("[DEMO MODE] Redirecting email originally addressed to %s -> %s", to, settings.DEMO_RECIPIENT_OVERRIDE)
+        actual_to = settings.DEMO_RECIPIENT_OVERRIDE
+
     try:
         import resend
 
@@ -23,12 +28,12 @@ def send_email(*, to: str, subject: str, html: str) -> bool:
         resend.Emails.send(
             {
                 "from": settings.REMINDER_EMAIL_FROM,
-                "to": [to],
+                "to": [actual_to],
                 "subject": subject,
                 "html": html,
             }
         )
         return True
     except Exception:
-        logger.exception("Failed to send email to %s via Resend", to)
+        logger.exception("Failed to send email to %s via Resend", actual_to)
         return False
