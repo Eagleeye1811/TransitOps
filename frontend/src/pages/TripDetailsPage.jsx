@@ -21,6 +21,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { PermissionGate } from '@/components/common/PermissionGate'
 import { Field, Textarea } from '@/components/common/FormControls'
 import { TripLifecycle } from '@/components/trips/TripLifecycle'
+import { TripRouteMap } from '@/components/trips/TripRouteMap'
 import { MODULES, ACTIONS } from '@/config/permissions'
 import { TRIP_STATUS, TRIP_STATUS_LABELS } from '@/data/trips'
 import * as tripService from '@/services/tripService'
@@ -254,6 +255,8 @@ export default function TripDetailsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <TripRouteMap source={trip.source} destination={trip.destination} />
 
       <ConfirmDialog
         open={dispatchOpen}

@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { PermissionGate } from '@/components/common/PermissionGate'
 import { Skeleton } from '@/components/common/Skeleton'
+import { DocumentsCard } from '@/components/documents/DocumentsCard'
 import { MODULES, ACTIONS, ACCESS_LEVELS } from '@/config/permissions'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/hooks/useToast'
@@ -197,6 +198,8 @@ export default function VehicleDetailsPage() {
           )}
         </div>
       </div>
+
+      <DocumentsCard ownerType="vehicle" ownerId={vehicle.id} />
 
       <ConfirmDialog
         open={confirmRetireOpen}

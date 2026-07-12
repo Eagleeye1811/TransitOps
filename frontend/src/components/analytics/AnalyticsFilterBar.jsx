@@ -13,9 +13,11 @@ import { REGIONS, VEHICLE_TYPES } from '@/data/regions'
  * Filter bar for the Analytics page. The date range / vehicle / region /
  * type filters are illustrative controlled state only — this prototype's
  * chart datasets are static mock aggregates and are not re-computed from
- * these filters. Export buttons are mocked (no real file generation).
+ * these filters. Export buttons call the `onExportCsv` / `onExportPdf`
+ * callbacks supplied by the parent page, which build the report from
+ * whatever data is currently on screen.
  */
-export function AnalyticsFilterBar() {
+export function AnalyticsFilterBar({ onExportCsv, onExportPdf }) {
   const toast = useToast()
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -24,7 +26,16 @@ export function AnalyticsFilterBar() {
   const [vehicleType, setVehicleType] = useState('')
 
   const handleExport = (format) => {
-    toast.success(`Report exported as ${format} (mock).`)
+    try {
+      if (format === 'CSV') {
+        onExportCsv?.()
+      } else {
+        onExportPdf?.()
+      }
+      toast.success(`Report exported as ${format}.`)
+    } catch (err) {
+      toast.error(`Failed to export ${format}: ${err.message}`)
+    }
   }
 
   return (

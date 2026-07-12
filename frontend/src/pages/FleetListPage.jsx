@@ -92,8 +92,8 @@ export default function FleetListPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">Fleet</h1>
-          <p className="text-sm text-slate-500">Manage your organisation&apos;s vehicles, capacity and status.</p>
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Fleet</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Manage your organisation&apos;s vehicles, capacity and status.</p>
         </div>
         <PermissionGate module={MODULES.FLEET} action={ACTIONS.CREATE}>
           <Link to="/fleet/new">
@@ -128,7 +128,7 @@ export default function FleetListPage() {
           </TBody>
         </TableContainer>
       ) : filtered.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <EmptyState
             icon={Truck}
             title="No vehicles found"

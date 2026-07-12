@@ -9,7 +9,7 @@ export function AppLayout() {
   const { role } = useAuth()
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
       <Sidebar role={role} mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col lg:pl-64">
         <Topbar onOpenMobileSidebar={() => setMobileOpen(true)} />

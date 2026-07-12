@@ -49,15 +49,15 @@ export function AdminDashboard() {
           <CardContent className="space-y-3">
             {usersByRole.map(({ role, count }) => (
               <div key={role} className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">{ROLE_LABELS[role]}</span>
+                <span className="text-slate-600 dark:text-slate-400">{ROLE_LABELS[role]}</span>
                 <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100">
+                  <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
                     <div
                       className="h-full rounded-full bg-brand-500"
                       style={{ width: `${(count / totalUsers) * 100}%` }}
                     />
                   </div>
-                  <span className="w-4 text-right font-medium text-slate-800">{count}</span>
+                  <span className="w-4 text-right font-medium text-slate-800 dark:text-slate-200">{count}</span>
                 </div>
               </div>
             ))}
@@ -87,16 +87,16 @@ function QuickLink({ to, icon: Icon, label, description }) {
   return (
     <Link
       to={to}
-      className="group flex items-center gap-3 rounded-lg border border-slate-200 p-4 transition-colors hover:border-brand-300 hover:bg-brand-50/50"
+      className="group flex items-center gap-3 rounded-lg border border-slate-200 p-4 transition-colors hover:border-brand-300 hover:bg-brand-50/50 dark:border-slate-700 dark:hover:border-brand-700 dark:hover:bg-brand-500/10"
     >
-      <span className="flex size-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+      <span className="flex size-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
         <Icon className="size-4.5" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-slate-800">{label}</p>
-        <p className="text-xs text-slate-500">{description}</p>
+        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{label}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
       </div>
-      <ArrowRight className="size-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-500" />
+      <ArrowRight className="size-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-500 dark:text-slate-600" />
     </Link>
   )
 }

@@ -16,13 +16,13 @@ export function Badge({ className, color = 'gray', children, dot = false }) {
 }
 
 const COLOR_CLASSES = {
-  green: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-  blue: 'bg-blue-50 text-blue-700 ring-blue-600/20',
-  amber: 'bg-amber-50 text-amber-800 ring-amber-600/20',
-  red: 'bg-red-50 text-red-700 ring-red-600/20',
-  gray: 'bg-gray-100 text-gray-600 ring-gray-400/20',
-  violet: 'bg-violet-50 text-violet-700 ring-violet-600/20',
-  teal: 'bg-teal-50 text-teal-700 ring-teal-600/20',
+  green: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/30',
+  blue: 'bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/30',
+  amber: 'bg-amber-50 text-amber-800 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/30',
+  red: 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/30',
+  gray: 'bg-gray-100 text-gray-600 ring-gray-400/20 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-500/30',
+  violet: 'bg-violet-50 text-violet-700 ring-violet-600/20 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-500/30',
+  teal: 'bg-teal-50 text-teal-700 ring-teal-600/20 dark:bg-teal-500/10 dark:text-teal-400 dark:ring-teal-500/30',
 }
 
 const DOT_CLASSES = {

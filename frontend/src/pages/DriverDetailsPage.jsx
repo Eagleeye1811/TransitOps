@@ -21,6 +21,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { PermissionGate } from '@/components/common/PermissionGate'
 import { Skeleton } from '@/components/common/Skeleton'
+import { DocumentsCard } from '@/components/documents/DocumentsCard'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/hooks/useToast'
 import { MODULES, ACTIONS, ACCESS_LEVELS } from '@/config/permissions'
@@ -246,6 +247,8 @@ export default function DriverDetailsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <DocumentsCard ownerType="driver" ownerId={driver.id} />
 
       <ConfirmDialog
         open={confirmAction === 'suspend'}

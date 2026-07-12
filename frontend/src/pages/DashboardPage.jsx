@@ -21,7 +21,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-1">
       <div className="mb-5">
-        <p className="text-sm text-slate-500">Welcome back, {user?.name?.split(' ')[0]} 👋</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Welcome back, {user?.name?.split(' ')[0]} 👋</p>
       </div>
       {DashboardComponent ? <DashboardComponent /> : null}
     </div>
