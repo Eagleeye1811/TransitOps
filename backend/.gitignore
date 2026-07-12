@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# uv-managed virtualenv
+.venv/
+
+# Local SQLite dev database
+dev.db
+*.db
+
+# Secrets
+.env
+.env.local
