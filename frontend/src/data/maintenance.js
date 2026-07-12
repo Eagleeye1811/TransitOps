@@ -1,0 +1,131 @@
+export const MAINTENANCE_STATUS = {
+  SCHEDULED: 'scheduled',
+  IN_SHOP: 'in_shop',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+}
+
+export const MAINTENANCE_STATUS_LABELS = {
+  [MAINTENANCE_STATUS.SCHEDULED]: 'Scheduled',
+  [MAINTENANCE_STATUS.IN_SHOP]: 'In Shop',
+  [MAINTENANCE_STATUS.COMPLETED]: 'Completed',
+  [MAINTENANCE_STATUS.CANCELLED]: 'Cancelled',
+}
+
+export const SERVICE_TYPES = [
+  'Oil Change',
+  'Engine Repair',
+  'Tyre Replacement',
+  'Brake Service',
+  'Battery Replacement',
+  'General Inspection',
+  'AC Service',
+  'Body Repair',
+]
+
+export const MAINTENANCE_RECORDS = [
+  {
+    id: 'MNT-001',
+    vehicleId: 'VEH-001',
+    serviceType: 'Oil Change',
+    description: 'Routine engine oil and filter replacement.',
+    cost: 2500,
+    serviceDate: '2026-07-05',
+    expectedCompletionDate: '2026-07-05',
+    status: MAINTENANCE_STATUS.COMPLETED,
+  },
+  {
+    id: 'MNT-002',
+    vehicleId: 'VEH-002',
+    serviceType: 'Engine Repair',
+    description: 'Turbocharger inspection and repair after warning light.',
+    cost: 18000,
+    serviceDate: '2026-07-06',
+    expectedCompletionDate: '2026-07-10',
+    status: MAINTENANCE_STATUS.COMPLETED,
+  },
+  {
+    id: 'MNT-003',
+    vehicleId: 'VEH-003',
+    serviceType: 'Tyre Replacement',
+    description: 'Replacing two front tyres, worn tread depth.',
+    cost: 6200,
+    serviceDate: '2026-07-11',
+    expectedCompletionDate: '2026-07-13',
+    status: MAINTENANCE_STATUS.IN_SHOP,
+  },
+  {
+    id: 'MNT-004',
+    vehicleId: 'VEH-008',
+    serviceType: 'Brake Service',
+    description: 'Brake pad replacement and disc resurfacing.',
+    cost: 9400,
+    serviceDate: '2026-07-09',
+    expectedCompletionDate: '2026-07-14',
+    status: MAINTENANCE_STATUS.IN_SHOP,
+  },
+  {
+    id: 'MNT-005',
+    vehicleId: 'VEH-005',
+    serviceType: 'General Inspection',
+    description: 'Quarterly fitness and safety inspection.',
+    cost: 1800,
+    serviceDate: '2026-07-18',
+    expectedCompletionDate: '2026-07-18',
+    status: MAINTENANCE_STATUS.SCHEDULED,
+  },
+  {
+    id: 'MNT-006',
+    vehicleId: 'VEH-007',
+    serviceType: 'AC Service',
+    description: 'Cabin AC gas top-up and filter cleaning.',
+    cost: 2200,
+    serviceDate: '2026-07-20',
+    expectedCompletionDate: '2026-07-20',
+    status: MAINTENANCE_STATUS.SCHEDULED,
+  },
+  {
+    id: 'MNT-007',
+    vehicleId: 'VEH-009',
+    serviceType: 'Battery Replacement',
+    description: 'Battery not holding charge, replaced with new unit.',
+    cost: 7600,
+    serviceDate: '2026-06-30',
+    expectedCompletionDate: '2026-06-30',
+    status: MAINTENANCE_STATUS.COMPLETED,
+  },
+  {
+    id: 'MNT-008',
+    vehicleId: 'VEH-011',
+    serviceType: 'Body Repair',
+    description: 'Minor collision damage repair on rear panel.',
+    cost: 14500,
+    serviceDate: '2026-06-25',
+    expectedCompletionDate: '2026-07-02',
+    status: MAINTENANCE_STATUS.CANCELLED,
+  },
+  {
+    id: 'MNT-009',
+    vehicleId: 'VEH-006',
+    serviceType: 'Oil Change',
+    description: 'Scheduled 10,000 km service interval.',
+    cost: 2400,
+    serviceDate: '2026-07-22',
+    expectedCompletionDate: '2026-07-22',
+    status: MAINTENANCE_STATUS.SCHEDULED,
+  },
+  {
+    id: 'MNT-010',
+    vehicleId: 'VEH-010',
+    serviceType: 'Tyre Replacement',
+    description: 'All four tyres replaced ahead of monsoon season.',
+    cost: 24800,
+    serviceDate: '2026-06-20',
+    expectedCompletionDate: '2026-06-21',
+    status: MAINTENANCE_STATUS.COMPLETED,
+  },
+]
+
+export function getMaintenanceById(id) {
+  return MAINTENANCE_RECORDS.find((m) => m.id === id)
+}
