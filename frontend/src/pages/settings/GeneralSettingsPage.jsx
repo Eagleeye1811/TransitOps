@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Settings as SettingsIcon } from 'lucide-react'
+import { Settings as SettingsIcon, Mail } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/common/Card'
 import { Field, Input, Select, Checkbox } from '@/components/common/FormControls'
 import { Button } from '@/components/common/Button'
 import { CardSkeleton } from '@/components/common/Skeleton'
 import { REGIONS } from '@/data/regions'
-import { getOrgSettings, updateOrgSettings } from '@/services/settingsService'
+import { getOrgSettings, updateOrgSettings, runReminderSweep } from '@/services/settingsService'
 import { useToast } from '@/hooks/useToast'
 
 const CURRENCY_OPTIONS = [
@@ -21,6 +21,8 @@ export default function GeneralSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(null)
+  const [sweeping, setSweeping] = useState(false)
+  const [sweepResult, setSweepResult] = useState(null)
 
   useEffect(() => {
     let active = true
@@ -51,6 +53,20 @@ export default function GeneralSettingsPage() {
       toast.success('Settings saved successfully.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleRunSweep() {
+    setSweeping(true)
+    setSweepResult(null)
+    try {
+      const result = await runReminderSweep()
+      setSweepResult(result)
+      toast.success(result.sent ? `Reminder emails sent to ${result.recipients.length} recipient(s).` : result.reason)
+    } catch {
+      toast.error('Could not run the reminder sweep. Please try again.')
+    } finally {
+      setSweeping(false)
     }
   }
 
@@ -183,6 +199,48 @@ export default function GeneralSettingsPage() {
             </CardFooter>
           </Card>
         </form>
+      )}
+
+      {!loading && form && (
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>Licence expiry reminder sweep</CardTitle>
+              <CardDescription>
+                Runs automatically every day at 08:00 IST. Trigger it manually here to see it fire immediately.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Emails every active Admin/Safety Officer a summary of driver licences and documents expiring within the
+              next {form.licenceExpiryReminderDays ?? 60} days.
+            </p>
+            {sweepResult && (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm dark:border-slate-700 dark:bg-slate-800">
+                {sweepResult.sent ? (
+                  <>
+                    <p className="font-medium text-slate-800 dark:text-slate-200">
+                      Sent to {sweepResult.recipients.join(', ')}
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                      {sweepResult.expiringDriverCount} driver licence(s), {sweepResult.expiringDocumentCount} document(s)
+                      flagged.
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-slate-600 dark:text-slate-400">{sweepResult.reason}</p>
+                )}
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Button type="button" variant="secondary" onClick={handleRunSweep} loading={sweeping}>
+              <Mail className="size-4" />
+              Send reminder emails now
+            </Button>
+          </CardFooter>
+        </Card>
       )}
     </div>
   )

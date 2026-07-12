@@ -38,3 +38,7 @@ export async function updateOrgSettings(payload) {
   const data = await api.patch('/settings/org', toBackendShape(payload))
   return toFrontendShape(data)
 }
+
+export async function runReminderSweep() {
+  return api.post('/settings/run-reminder-sweep')
+}

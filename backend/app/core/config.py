@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str | None = None
     REMINDER_EMAIL_FROM: str = "TransitOps <alerts@transitops.in>"
     LICENCE_EXPIRY_REMINDER_DAYS: int = 60
+    # Demo-only: seeded users have @transitops.in addresses that don't exist,
+    # so Resend can't deliver to them. When set, every outgoing email is
+    # redirected here instead so the pipeline is demoable end-to-end without
+    # a verified sending domain. Leave unset in a real deployment.
+    DEMO_RECIPIENT_OVERRIDE: str | None = None
 
     CLOUDINARY_CLOUD_NAME: str | None = None
     CLOUDINARY_API_KEY: str | None = None
