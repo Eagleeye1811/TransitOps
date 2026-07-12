@@ -2,8 +2,6 @@ import { useState } from 'react'
 import { Field, Input, Select, Textarea } from '@/components/common/FormControls'
 import { Button } from '@/components/common/Button'
 import { EXPENSE_CATEGORIES } from '@/data/fuelLogs'
-import { VEHICLES } from '@/data/vehicles'
-import { TRIPS } from '@/data/trips'
 
 const EMPTY_VALUES = {
   vehicleId: '',
@@ -14,8 +12,10 @@ const EMPTY_VALUES = {
   description: '',
 }
 
-/** Shared create/edit form for other expenses, used inside a Modal. */
-export function ExpenseForm({ initialValues, onSubmit, onCancel, submitting = false }) {
+/** Shared create/edit form for other expenses, used inside a Modal.
+ * `vehicles`/`trips` are fetched once by the parent page (Financial
+ * Analyst has no Trips module access, so `trips` may come back empty). */
+export function ExpenseForm({ initialValues, onSubmit, onCancel, submitting = false, vehicles = [], trips = [] }) {
   const [values, setValues] = useState({ ...EMPTY_VALUES, ...initialValues, tripId: initialValues?.tripId ?? '' })
   const [errors, setErrors] = useState({})
 
@@ -49,7 +49,7 @@ export function ExpenseForm({ initialValues, onSubmit, onCancel, submitting = fa
       <Field label="Vehicle" htmlFor="vehicleId" required error={errors.vehicleId}>
         <Select id="vehicleId" value={values.vehicleId} onChange={(e) => update({ vehicleId: e.target.value })}>
           <option value="">Select vehicle…</option>
-          {VEHICLES.map((v) => (
+          {vehicles.map((v) => (
             <option key={v.id} value={v.id}>
               {v.registration} — {v.model}
             </option>
@@ -60,7 +60,7 @@ export function ExpenseForm({ initialValues, onSubmit, onCancel, submitting = fa
       <Field label="Related Trip" htmlFor="tripId" hint="Optional — link this expense to a specific trip">
         <Select id="tripId" value={values.tripId} onChange={(e) => update({ tripId: e.target.value })}>
           <option value="">No related trip</option>
-          {TRIPS.map((t) => (
+          {trips.map((t) => (
             <option key={t.id} value={t.id}>
               {t.id} — {t.source} → {t.destination}
             </option>

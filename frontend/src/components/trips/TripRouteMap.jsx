@@ -155,10 +155,10 @@ export function TripRouteMap({ source, destination, sourceLat, sourceLng, destin
         <CardContent>
           <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-6 text-center">
             <MapPinned className="size-8 text-slate-300" />
-            <p className="text-sm font-medium text-slate-600">Map requires a Mapbox access token</p>
-            <p className="max-w-sm text-xs text-slate-400">
-              Add <code className="rounded bg-slate-200 px-1 py-0.5 text-slate-600">VITE_MAPBOX_TOKEN</code> to your{' '}
-              <code className="rounded bg-slate-200 px-1 py-0.5 text-slate-600">.env</code> to enable live route
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Map requires a Mapbox access token</p>
+            <p className="max-w-sm text-xs text-slate-400 dark:text-slate-500">
+              Add <code className="rounded bg-slate-200 px-1 py-0.5 text-slate-600 dark:bg-slate-800 dark:text-slate-400">VITE_MAPBOX_TOKEN</code> to your{' '}
+              <code className="rounded bg-slate-200 px-1 py-0.5 text-slate-600 dark:bg-slate-800 dark:text-slate-400">.env</code> to enable live route
               visualization.
             </p>
           </div>
@@ -176,7 +176,7 @@ export function TripRouteMap({ source, destination, sourceLat, sourceLng, destin
         <div className="relative h-80 overflow-hidden rounded-lg border border-slate-200">
           <div ref={containerRef} className="h-full w-full" />
           {status === 'error' && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/80 text-sm text-slate-500">
+            <div className="absolute inset-0 flex items-center justify-center bg-white/80 text-sm text-slate-500 dark:bg-slate-900/80 dark:text-slate-400">
               Unable to load the route map.
             </div>
           )}

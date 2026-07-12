@@ -3,15 +3,15 @@ import { Route as RouteIcon } from 'lucide-react'
 import { TableContainer, THead, TBody, TR, TH, TD } from '@/components/common/Table'
 import { StatusBadge } from '@/components/common/Badge'
 import { EmptyState } from '@/components/common/EmptyState'
-import { getVehicleById } from '@/data/vehicles'
-import { getDriverById } from '@/data/drivers'
 import { TRIP_STATUS, TRIP_STATUS_LABELS } from '@/data/trips'
 import { formatDate } from '@/utils/formatters'
 
 /**
  * Responsive trips table. Row click navigates to the trip's details page.
+ * `vehicles`/`drivers` are Maps keyed by id, fetched once by the parent
+ * page and passed down so rows can resolve names without a mock lookup.
  */
-export function TripTable({ trips }) {
+export function TripTable({ trips, vehicles = new Map(), drivers = new Map() }) {
   const navigate = useNavigate()
 
   if (trips.length === 0) {
@@ -39,11 +39,11 @@ export function TripTable({ trips }) {
       </THead>
       <TBody>
         {trips.map((trip) => {
-          const vehicle = getVehicleById(trip.vehicleId)
-          const driver = getDriverById(trip.driverId)
+          const vehicle = vehicles.get(trip.vehicleId)
+          const driver = drivers.get(trip.driverId)
           return (
             <TR key={trip.id} onClick={() => navigate(`/trips/${trip.id}`)}>
-              <TD className="font-medium text-slate-900">{trip.id}</TD>
+              <TD className="font-medium text-slate-900 dark:text-slate-100">{trip.id}</TD>
               <TD>
                 {trip.source} → {trip.destination}
               </TD>

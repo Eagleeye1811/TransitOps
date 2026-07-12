@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Field, Input, Select, Textarea } from '@/components/common/FormControls'
 import { Button } from '@/components/common/Button'
 import { SERVICE_TYPES, MAINTENANCE_STATUS, MAINTENANCE_STATUS_LABELS } from '@/data/maintenance'
-import { VEHICLES } from '@/data/vehicles'
 
 const EMPTY_VALUES = {
   vehicleId: '',
@@ -18,7 +17,7 @@ const EMPTY_VALUES = {
  * Shared create/edit form for maintenance records. Status field is only
  * rendered in edit mode — new records always default to Scheduled.
  */
-export function MaintenanceForm({ initialValues, mode = 'create', onSubmit, onCancel, submitting = false }) {
+export function MaintenanceForm({ initialValues, mode = 'create', onSubmit, onCancel, submitting = false, vehicles = [] }) {
   const [values, setValues] = useState({ ...EMPTY_VALUES, ...initialValues })
   const [errors, setErrors] = useState({})
 
@@ -53,7 +52,7 @@ export function MaintenanceForm({ initialValues, mode = 'create', onSubmit, onCa
       <Field label="Vehicle" htmlFor="vehicleId" required error={errors.vehicleId}>
         <Select id="vehicleId" value={values.vehicleId} onChange={(e) => update({ vehicleId: e.target.value })}>
           <option value="">Select vehicle…</option>
-          {VEHICLES.map((v) => (
+          {vehicles.map((v) => (
             <option key={v.id} value={v.id}>
               {v.registration} — {v.model}
             </option>

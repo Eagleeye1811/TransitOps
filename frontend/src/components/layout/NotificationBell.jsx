@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Bell, CheckCircle2, Info, AlertTriangle, XCircle } from 'lucide-react'
-import { NOTIFICATIONS } from '@/data/notifications'
 import { timeAgo } from '@/utils/formatters'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { cn } from '@/utils/cn'
+import { EmptyState } from '@/components/common/EmptyState'
+import * as notificationService from '@/services/notificationService'
 
 const ICONS = { success: CheckCircle2, info: Info, warning: AlertTriangle, error: XCircle }
 const ICON_COLORS = {
@@ -15,11 +16,30 @@ const ICON_COLORS = {
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false)
-  const [notifications, setNotifications] = useState(NOTIFICATIONS)
+  const [notifications, setNotifications] = useState([])
   const ref = useRef(null)
   useClickOutside(ref, () => setOpen(false), open)
 
+  useEffect(() => {
+    let active = true
+    notificationService
+      .getNotifications()
+      .then((data) => {
+        if (active) setNotifications(data)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
+
   const unreadCount = notifications.filter((n) => !n.read).length
+
+  const markAllRead = () => {
+    const unread = notifications.filter((n) => !n.read)
+    setNotifications((ns) => ns.map((n) => ({ ...n, read: true })))
+    Promise.all(unread.map((n) => notificationService.markNotificationRead(n.id))).catch(() => {})
+  }
 
   return (
     <div className="relative" ref={ref}>
@@ -41,7 +61,7 @@ export function NotificationBell() {
             {unreadCount > 0 && (
               <button
                 type="button"
-                onClick={() => setNotifications((ns) => ns.map((n) => ({ ...n, read: true })))}
+                onClick={markAllRead}
                 className="text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
               >
                 Mark all read
@@ -49,6 +69,11 @@ export function NotificationBell() {
             )}
           </div>
           <div className="max-h-80 overflow-y-auto">
+            {notifications.length === 0 && (
+              <div className="px-4 py-6">
+                <EmptyState icon={Bell} title="No notifications" />
+              </div>
+            )}
             {notifications.map((n) => {
               const Icon = ICONS[n.type] ?? Info
               return (

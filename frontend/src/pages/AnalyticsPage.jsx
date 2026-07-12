@@ -17,9 +17,9 @@ import { BarChart3, ShieldAlert, ShieldCheck, AlertTriangle, Wallet, Route, Gaug
 import { usePermissions } from '@/hooks/usePermissions'
 import { MODULES, ACCESS_LEVELS } from '@/config/permissions'
 import { AnalyticsFilterBar } from '@/components/analytics/AnalyticsFilterBar'
-import { ChartCard } from '@/components/analytics/ChartCard'
+import { ChartCard, EmptyChartCard } from '@/components/analytics/ChartCard'
 import { StatCard } from '@/components/dashboard/StatCard'
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/common/Card'
+import { Card, CardHeader, CardTitle } from '@/components/common/Card'
 import { TableContainer, THead, TBody, TR, TH, TD } from '@/components/common/Table'
 import { StatusBadge } from '@/components/common/Badge'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -28,14 +28,15 @@ import { formatCurrency, formatDate } from '@/utils/formatters'
 import { exportAnalyticsReport } from '@/utils/pdfExport'
 import { exportReportAsCsv } from '@/utils/csvExport'
 import { getAnalyticsSummary } from '@/services/analyticsService'
-import { DRIVERS, isLicenceExpiringSoon, isLicenceExpired } from '@/data/drivers'
-import { VEHICLES } from '@/data/vehicles'
-import { SAFETY_INCIDENTS, SAFETY_VIOLATIONS, INCIDENT_SEVERITY_LABELS } from '@/data/incidents'
+import { getDrivers } from '@/services/driverService'
+import { getIncidents, getViolations } from '@/services/safetyService'
+import { INCIDENT_SEVERITY_LABELS } from '@/data/incidents'
 
 const CHART_GRID = '#e2e8f0'
 const CHART_AXIS = '#94a3b8'
 const TOOLTIP_STYLE = { borderRadius: 8, fontSize: 12, borderColor: '#e2e8f0' }
 const PIE_COLORS = ['#4f46e5', '#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5cf6', '#14b8a6', '#f97316']
+const MIN_PIE_LABEL_PERCENT = 0.06
 
 // Live-computed from the DB by GET /analytics/summary — see
 // backend/app/services/analytics_service.py. Used as the initial state and
@@ -44,6 +45,7 @@ const PIE_COLORS = ['#4f46e5', '#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5
 const EMPTY_SUMMARY = {
   fleetUtilisationTrend: [],
   topCostliestVehicles: [],
+  topVehiclesByRoi: [],
   expenseByCategory: [],
   vehicleTypeBreakdown: [],
   underutilisedVehicles: [],
@@ -58,11 +60,14 @@ const EMPTY_SUMMARY = {
   totalExpenseCost: 0,
   avgCostPerVehicle: 0,
   avgVehicleRoi: 0,
+  totalTripsCompleted: 0,
   expiringLicencesCount: 0,
   expiredLicencesCount: 0,
   openIncidentsCount: 0,
   openViolationsCount: 0,
 }
+
+const EMPTY_SAFETY_DATA = { drivers: [], incidents: [], violations: [] }
 
 export default function AnalyticsPage() {
   const { access } = usePermissions()
@@ -74,6 +79,7 @@ export default function AnalyticsPage() {
   const hasAnyAccess = showFleet || showSafety || showFinancial
 
   const [summary, setSummary] = useState(EMPTY_SUMMARY)
+  const [safetyData, setSafetyData] = useState(EMPTY_SAFETY_DATA)
   const [loading, setLoading] = useState(hasAnyAccess)
 
   useEffect(() => {
@@ -84,10 +90,22 @@ export default function AnalyticsPage() {
     }
     let active = true
     setLoading(true)
-    getAnalyticsSummary()
-      .then((data) => {
+    // Incidents/violations/driver-name-resolution are only ever needed by
+    // SafetyReportsSection (Admin/Safety Officer) — both of those roles have
+    // full Compliance + Drivers module access, so this fetch is RBAC-safe
+    // whenever showSafety is true. Skipped otherwise (e.g. Financial
+    // Analyst has no Drivers access at all and would 403).
+    Promise.all([
+      getAnalyticsSummary(),
+      showSafety ? Promise.all([getDrivers(), getIncidents(), getViolations()]) : Promise.resolve(null),
+    ])
+      .then(([summaryData, safety]) => {
         if (!active) return
-        setSummary(data)
+        setSummary(summaryData)
+        if (safety) {
+          const [drivers, incidents, violations] = safety
+          setSafetyData({ drivers, incidents, violations })
+        }
         setLoading(false)
       })
       .catch(() => {
@@ -97,13 +115,13 @@ export default function AnalyticsPage() {
     return () => {
       active = false
     }
-    // hasAnyAccess is derived from `level`, which only changes on login/role switch.
+    // hasAnyAccess/showSafety are derived from `level`, which only changes on login/role switch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level])
 
   const reportData = useMemo(
-    () => buildReportData({ summary, showFleet, showSafety, showFinancial }),
-    [summary, showFleet, showSafety, showFinancial]
+    () => buildReportData({ summary, showFleet, showSafety, showFinancial, safetyData }),
+    [summary, showFleet, showSafety, showFinancial, safetyData]
   )
 
   const handleExportPdf = () => exportAnalyticsReport(reportData)
@@ -123,7 +141,7 @@ export default function AnalyticsPage() {
       ) : (
         <>
           {showFleet && <FleetAnalyticsSection summary={summary} />}
-          {showSafety && <SafetyReportsSection summary={summary} />}
+          {showSafety && <SafetyReportsSection summary={summary} safetyData={safetyData} />}
           {showFinancial && <FinancialAnalyticsSection summary={summary} />}
 
           {!hasAnyAccess && (
@@ -146,7 +164,7 @@ export default function AnalyticsPage() {
 // sourced from the live GET /analytics/summary payload instead of the old
 // static mock data.
 // ---------------------------------------------------------------------------
-function buildReportData({ summary, showFleet, showSafety, showFinancial }) {
+function buildReportData({ summary, showFleet, showSafety, showFinancial, safetyData }) {
   const kpis = []
   const tables = []
 
@@ -174,46 +192,43 @@ function buildReportData({ summary, showFleet, showSafety, showFinancial }) {
   }
 
   if (showSafety) {
-    const expiringCount = DRIVERS.filter((d) => isLicenceExpiringSoon(d.licenceExpiry)).length
-    const expiredCount = DRIVERS.filter((d) => isLicenceExpired(d.licenceExpiry)).length
-    const validCount = DRIVERS.length - expiringCount - expiredCount
+    const { drivers, incidents, violations } = safetyData
+    const validCount = drivers.length - summary.expiringLicencesCount - summary.expiredLicencesCount
     kpis.push({ label: 'Valid Licences', value: validCount })
-    kpis.push({ label: 'Expiring Soon (60 days)', value: expiringCount })
-    kpis.push({ label: 'Expired Licences', value: expiredCount })
+    kpis.push({ label: 'Expiring Soon (60 days)', value: summary.expiringLicencesCount })
+    kpis.push({ label: 'Expired Licences', value: summary.expiredLicencesCount })
 
     tables.push({
       heading: 'Safety Incidents',
       columns: ['Driver', 'Type', 'Severity', 'Date'],
-      rows: SAFETY_INCIDENTS.map((inc) => {
-        const driver = DRIVERS.find((d) => d.id === inc.driverId)
+      rows: incidents.map((inc) => {
+        const driver = drivers.find((d) => d.id === inc.driverId)
         return [driver?.name ?? inc.driverId, inc.type, INCIDENT_SEVERITY_LABELS[inc.severity] ?? inc.severity, formatDate(inc.date)]
       }),
     })
     tables.push({
       heading: 'Safety Violations',
       columns: ['Driver', 'Description', 'Status'],
-      rows: SAFETY_VIOLATIONS.map((v) => {
-        const driver = DRIVERS.find((d) => d.id === v.driverId)
+      rows: violations.map((v) => {
+        const driver = drivers.find((d) => d.id === v.driverId)
         return [driver?.name ?? v.driverId, v.description, v.status]
       }),
     })
   }
 
   if (showFinancial) {
-    const totalTrips = DRIVERS.reduce((s, d) => s + d.tripsCompleted, 0)
     // revenueTrend is always empty (this schema has no revenue/billing
     // concept — see analytics_service.py), so "cost per trip" is derived
     // from the live cost totals the summary does provide.
     const totalExpense = summary.totalExpenseCost + summary.totalFuelCost + summary.totalMaintenanceCost
-    const costPerTrip = totalTrips ? totalExpense / totalTrips : 0
+    const costPerTrip = summary.totalTripsCompleted ? totalExpense / summary.totalTripsCompleted : 0
     kpis.push({ label: 'Avg. Operating Cost / Vehicle / Month', value: formatCurrency(summary.avgCostPerVehicle) })
     kpis.push({ label: 'Avg. Cost / Trip', value: formatCurrency(costPerTrip) })
 
-    const top5Roi = [...VEHICLES].sort((a, b) => b.roi - a.roi).slice(0, 5)
     tables.push({
       heading: 'Vehicle ROI (Top 5)',
       columns: ['Vehicle', 'ROI'],
-      rows: top5Roi.map((v) => [v.registration, `${v.roi}%`]),
+      rows: summary.topVehiclesByRoi.map((v) => [v.vehicle, `${v.roi}%`]),
     })
     tables.push({
       heading: 'Expense by Category',
@@ -238,26 +253,6 @@ function SectionHeader({ icon: Icon, title, accent = 'brand' }) {
       </span>
       <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
     </div>
-  )
-}
-
-// A chart card with no data to show — e.g. no vehicles have 2+ maintenance
-// records yet, so "Repeated Breakdowns" has nothing to plot. Mirrors
-// ChartCard's layout (title/description in the header) without pushing an
-// empty dataset into Recharts, which would otherwise render a blank axis.
-function EmptyChartCard({ title, description, note, className }) {
-  return (
-    <Card className={className}>
-      <CardHeader>
-        <div>
-          <CardTitle>{title}</CardTitle>
-          {description && <CardDescription>{description}</CardDescription>}
-        </div>
-      </CardHeader>
-      <div className="flex h-80 items-center justify-center px-5">
-        <EmptyState title="Not enough data yet" description={note ?? 'This chart will populate once more records exist.'} />
-      </div>
-    </Card>
   )
 }
 
@@ -364,23 +359,21 @@ function FleetAnalyticsSection({ summary }) {
 // ---------------------------------------------------------------------------
 // Safety Officer / Admin
 // ---------------------------------------------------------------------------
-function SafetyReportsSection({ summary }) {
-  const { safetyScoreTrend, suspendedDriverTrend } = summary
-
-  const expiringCount = useMemo(() => DRIVERS.filter((d) => isLicenceExpiringSoon(d.licenceExpiry)).length, [])
-  const expiredCount = useMemo(() => DRIVERS.filter((d) => isLicenceExpired(d.licenceExpiry)).length, [])
-  const validCount = DRIVERS.length - expiringCount - expiredCount
+function SafetyReportsSection({ summary, safetyData }) {
+  const { safetyScoreTrend, suspendedDriverTrend, expiringLicencesCount, expiredLicencesCount } = summary
+  const { drivers, incidents, violations } = safetyData
+  const validCount = drivers.length - expiringLicencesCount - expiredLicencesCount
 
   return (
     <section className="space-y-4">
       <SectionHeader icon={ShieldAlert} title="Safety Reports" accent="rose" />
 
       <div>
-        <p className="mb-3 text-sm font-medium text-slate-700">Licence Compliance</p>
+        <p className="mb-3 text-sm font-medium text-slate-700 dark:text-slate-300">Licence Compliance</p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <StatCard icon={ShieldCheck} label="Valid Licences" value={validCount} accent="emerald" />
-          <StatCard icon={AlertTriangle} label="Expiring Soon (60 days)" value={expiringCount} accent="amber" />
-          <StatCard icon={ShieldAlert} label="Expired" value={expiredCount} accent="red" />
+          <StatCard icon={AlertTriangle} label="Expiring Soon (60 days)" value={expiringLicencesCount} accent="amber" />
+          <StatCard icon={ShieldAlert} label="Expired" value={expiredLicencesCount} accent="red" />
         </div>
       </div>
 
@@ -421,8 +414,8 @@ function SafetyReportsSection({ summary }) {
               </TR>
             </THead>
             <TBody>
-              {SAFETY_INCIDENTS.map((inc) => {
-                const driver = DRIVERS.find((d) => d.id === inc.driverId)
+              {incidents.map((inc) => {
+                const driver = drivers.find((d) => d.id === inc.driverId)
                 return (
                   <TR key={inc.id}>
                     <TD>{driver?.name ?? inc.driverId}</TD>
@@ -451,8 +444,8 @@ function SafetyReportsSection({ summary }) {
               </TR>
             </THead>
             <TBody>
-              {SAFETY_VIOLATIONS.map((v) => {
-                const driver = DRIVERS.find((d) => d.id === v.driverId)
+              {violations.map((v) => {
+                const driver = drivers.find((d) => d.id === v.driverId)
                 return (
                   <TR key={v.id}>
                     <TD>{driver?.name ?? v.driverId}</TD>
@@ -475,23 +468,23 @@ function SafetyReportsSection({ summary }) {
 // Financial Analyst / Admin
 // ---------------------------------------------------------------------------
 function FinancialAnalyticsSection({ summary }) {
-  const { fuelEfficiencyTrend, maintenanceTrend, revenueTrend, expenseByCategory, avgCostPerVehicle } = summary
+  const {
+    fuelEfficiencyTrend,
+    maintenanceTrend,
+    revenueTrend,
+    expenseByCategory,
+    avgCostPerVehicle,
+    topVehiclesByRoi,
+    totalTripsCompleted,
+  } = summary
 
-  const top5Roi = useMemo(
-    () =>
-      [...VEHICLES]
-        .sort((a, b) => b.roi - a.roi)
-        .slice(0, 5)
-        .map((v) => ({ name: v.registration, roi: v.roi })),
-    []
-  )
+  const top5Roi = useMemo(() => topVehiclesByRoi.map((v) => ({ name: v.vehicle, roi: v.roi })), [topVehiclesByRoi])
 
-  const totalTrips = useMemo(() => DRIVERS.reduce((s, d) => s + d.tripsCompleted, 0), [])
   // revenueTrend is always empty (this schema has no revenue/billing
   // concept — see analytics_service.py) so "cost per trip" is derived from
   // the live cost totals the summary does provide, not from mock revenue.
   const totalExpense = summary.totalExpenseCost + summary.totalFuelCost + summary.totalMaintenanceCost
-  const costPerTrip = totalTrips ? totalExpense / totalTrips : 0
+  const costPerTrip = totalTripsCompleted ? totalExpense / totalTripsCompleted : 0
 
   return (
     <section className="space-y-4">
@@ -546,15 +539,19 @@ function FinancialAnalyticsSection({ summary }) {
           </BarChart>
         </ChartCard>
 
-        <ChartCard title="Vehicle ROI" description="Top 5 vehicles by return on investment">
-          <BarChart data={top5Roi}>
-            <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
-            <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke={CHART_AXIS} />
-            <YAxis tick={{ fontSize: 12 }} stroke={CHART_AXIS} unit="%" />
-            <Tooltip formatter={(v) => `${v}%`} contentStyle={TOOLTIP_STYLE} />
-            <Bar dataKey="roi" fill="#10b981" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ChartCard>
+        {top5Roi.length === 0 ? (
+          <EmptyChartCard title="Vehicle ROI" description="Top 5 vehicles by return on investment" />
+        ) : (
+          <ChartCard title="Vehicle ROI" description="Top 5 vehicles by return on investment">
+            <BarChart data={top5Roi}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke={CHART_AXIS} />
+              <YAxis tick={{ fontSize: 12 }} stroke={CHART_AXIS} unit="%" />
+              <Tooltip formatter={(v) => `${v}%`} contentStyle={TOOLTIP_STYLE} />
+              <Bar dataKey="roi" fill="#10b981" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ChartCard>
+        )}
 
         {expenseByCategory.length === 0 ? (
           <EmptyChartCard
@@ -574,7 +571,10 @@ function FinancialAnalyticsSection({ summary }) {
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`}
+                label={({ category, percent }) =>
+                  percent >= MIN_PIE_LABEL_PERCENT ? `${category} ${(percent * 100).toFixed(0)}%` : ''
+                }
+                labelLine={false}
               >
                 {expenseByCategory.map((entry, index) => (
                   <Cell key={entry.category} fill={PIE_COLORS[index % PIE_COLORS.length]} />

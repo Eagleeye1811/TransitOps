@@ -1,32 +1,84 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Users, UserCheck, UserX, Truck, Wrench, Route, Wallet, Settings, KeySquare, ArrowRight } from 'lucide-react'
 import { StatCard } from './StatCard'
 import { RecentActivityList } from './RecentActivityList'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/common/Card'
-import { USERS } from '@/data/users'
-import { VEHICLES, VEHICLE_STATUS } from '@/data/vehicles'
-import { DRIVERS } from '@/data/drivers'
-import { TRIPS, TRIP_STATUS } from '@/data/trips'
-import { FUEL_LOGS, EXPENSES } from '@/data/fuelLogs'
-import { RECENT_ACTIVITY } from '@/data/activity'
+import { CardSkeleton } from '@/components/common/Skeleton'
+import { VEHICLE_STATUS } from '@/data/vehicles'
+import { TRIP_STATUS } from '@/data/trips'
 import { ROLE_LABELS, ROLE_LIST } from '@/config/roles'
 import { formatCurrency, formatNumber } from '@/utils/formatters'
+import * as userService from '@/services/userService'
+import * as fleetService from '@/services/fleetService'
+import * as driverService from '@/services/driverService'
+import * as tripService from '@/services/tripService'
+import * as expenseService from '@/services/expenseService'
+import * as activityService from '@/services/activityService'
 
 export function AdminDashboard() {
-  const totalUsers = USERS.length
-  const activeUsers = USERS.filter((u) => u.status === 'active').length
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let active = true
+    Promise.all([
+      userService.getUsers(),
+      fleetService.getVehicles(),
+      driverService.getDrivers(),
+      tripService.getTrips(),
+      expenseService.getFuelLogs(),
+      expenseService.getExpenses(),
+      activityService.getActivity(),
+    ])
+      .then(([users, vehicles, drivers, trips, fuelLogs, expenses, activity]) => {
+        if (!active) return
+        setData({ users, vehicles, drivers, trips, fuelLogs, expenses, activity })
+        setLoading(false)
+      })
+      .catch(() => {
+        if (!active) return
+        setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  if (loading || !data) {
+    return (
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <CardSkeleton key={i} className="h-40" />
+        ))}
+      </div>
+    )
+  }
+
+  const { users, vehicles, drivers, trips, fuelLogs, expenses, activity } = data
+
+  const totalUsers = users.length
+  const activeUsers = users.filter((u) => u.status === 'active').length
   const inactiveUsers = totalUsers - activeUsers
   const usersByRole = ROLE_LIST.map((role) => ({
     role,
-    count: USERS.filter((u) => u.role === role).length,
+    count: users.filter((u) => u.role === role).length,
   }))
 
-  const totalVehicles = VEHICLES.length
-  const totalDrivers = DRIVERS.length
-  const activeTrips = TRIPS.filter((t) => t.status === TRIP_STATUS.DISPATCHED).length
-  const inMaintenance = VEHICLES.filter((v) => v.status === VEHICLE_STATUS.IN_SHOP).length
+  const totalVehicles = vehicles.length
+  const totalDrivers = drivers.length
+  const activeTrips = trips.filter((t) => t.status === TRIP_STATUS.DISPATCHED).length
+  const inMaintenance = vehicles.filter((v) => v.status === VEHICLE_STATUS.IN_SHOP).length
   const totalExpense =
-    FUEL_LOGS.reduce((sum, f) => sum + f.cost, 0) + EXPENSES.reduce((sum, e) => sum + e.amount, 0)
+    fuelLogs.reduce((sum, f) => sum + f.cost, 0) + expenses.reduce((sum, e) => sum + e.amount, 0)
+
+  const recentActivity = activity.map((a) => ({
+    id: a.id,
+    actor: a.actorName,
+    role: ROLE_LABELS[a.actorRole] ?? a.actorRole,
+    action: a.action,
+    timestamp: a.timestamp,
+  }))
 
   return (
     <div className="space-y-6">
@@ -65,7 +117,7 @@ export function AdminDashboard() {
         </Card>
 
         <div className="lg:col-span-2">
-          <RecentActivityList items={RECENT_ACTIVITY} />
+          <RecentActivityList items={recentActivity} />
         </div>
       </div>
 

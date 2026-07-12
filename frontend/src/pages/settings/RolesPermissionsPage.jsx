@@ -25,8 +25,8 @@ export default function RolesPermissionsPage() {
           <KeySquare className="size-4.5" />
         </span>
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">Roles &amp; Permissions</h1>
-          <p className="text-sm text-slate-500">Reference matrix of module access per role.</p>
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Roles &amp; Permissions</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Reference matrix of module access per role.</p>
         </div>
       </div>
 
@@ -36,7 +36,7 @@ export default function RolesPermissionsPage() {
             <CardTitle>Role-Based Access Control</CardTitle>
             <CardDescription>
               This is the authoritative permission matrix defined centrally in the app&rsquo;s configuration
-              (<code className="rounded bg-slate-100 px-1 py-0.5 text-[11px] text-slate-600">src/config/permissions.js</code>).
+              (<code className="rounded bg-slate-100 px-1 py-0.5 text-[11px] text-slate-600 dark:bg-slate-800 dark:text-slate-400">src/config/permissions.js</code>).
               It is shown here for reference only — access levels cannot be edited from this screen.
             </CardDescription>
           </div>
@@ -45,7 +45,7 @@ export default function RolesPermissionsPage() {
           <RolesPermissionsTable />
 
           <div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Access level legend</p>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Access level legend</p>
             <div className="grid grid-cols-1 gap-x-6 gap-y-2.5 sm:grid-cols-2">
               {LEGEND_ORDER.map((level) => (
                 <div key={level} className="flex items-start gap-2.5">
@@ -54,7 +54,7 @@ export default function RolesPermissionsPage() {
                     label={ACCESS_LEVEL_LABELS[level]}
                     className={`${ACCESS_LEVEL_BADGE_CLASSES[level]} mt-0.5 shrink-0`}
                   />
-                  <p className="text-xs text-slate-500">{ACCESS_LEVEL_DESCRIPTIONS[level]}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{ACCESS_LEVEL_DESCRIPTIONS[level]}</p>
                 </div>
               ))}
             </div>

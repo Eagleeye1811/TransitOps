@@ -21,6 +21,7 @@ class AnalyticsSummary(BaseModel):
 
     fleet_utilisation_trend: list[dict]
     top_costliest_vehicles: list[dict]
+    top_vehicles_by_roi: list[dict]
     expense_by_category: list[dict]
     vehicle_type_breakdown: list[dict]
     underutilised_vehicles: list[dict]
@@ -37,6 +38,7 @@ class AnalyticsSummary(BaseModel):
     total_expense_cost: float
     avg_cost_per_vehicle: float
     avg_vehicle_roi: float
+    total_trips_completed: int
     expiring_licences_count: int
     expired_licences_count: int
     open_incidents_count: int

@@ -7,7 +7,6 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
 import { PermissionGate } from '@/components/common/PermissionGate'
 import { MODULES, ACTIONS } from '@/config/permissions'
-import { getVehicleById } from '@/data/vehicles'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 
 const CATEGORY_COLORS = {
@@ -21,8 +20,9 @@ const CATEGORY_COLORS = {
   Miscellaneous: 'gray',
 }
 
-/** Other-expenses table with gated edit/delete row actions. */
-export function ExpenseTable({ expenses, onEdit, onDelete }) {
+/** Other-expenses table with gated edit/delete row actions. `vehicles` is a
+ * Map keyed by id, fetched once by the parent page. */
+export function ExpenseTable({ expenses, vehicles = new Map(), onEdit, onDelete }) {
   const [pendingDelete, setPendingDelete] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -63,18 +63,18 @@ export function ExpenseTable({ expenses, onEdit, onDelete }) {
         </THead>
         <TBody>
           {expenses.map((expense) => {
-            const vehicle = getVehicleById(expense.vehicleId)
+            const vehicle = vehicles.get(expense.vehicleId)
             return (
               <TR key={expense.id}>
                 <TD>
-                  <div className="font-medium text-slate-900">{vehicle?.registration ?? expense.vehicleId}</div>
-                  <div className="text-xs text-slate-500">{vehicle?.model ?? '—'}</div>
+                  <div className="font-medium text-slate-900 dark:text-slate-100">{vehicle?.registration ?? expense.vehicleId}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{vehicle?.model ?? '—'}</div>
                 </TD>
                 <TD>{expense.tripId ?? '—'}</TD>
                 <TD>
                   <Badge color={CATEGORY_COLORS[expense.category] ?? 'gray'}>{expense.category}</Badge>
                 </TD>
-                <TD className="text-right font-medium text-slate-900">{formatCurrency(expense.amount)}</TD>
+                <TD className="text-right font-medium text-slate-900 dark:text-slate-100">{formatCurrency(expense.amount)}</TD>
                 <TD>{formatDate(expense.date)}</TD>
                 <TD className="max-w-xs truncate">{expense.description}</TD>
                 <TD className="text-right">

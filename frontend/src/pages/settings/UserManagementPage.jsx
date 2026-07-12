@@ -162,8 +162,8 @@ export default function UserManagementPage() {
             <UserCog className="size-4.5" />
           </span>
           <div>
-            <h1 className="text-lg font-semibold text-slate-900">User Management</h1>
-            <p className="text-sm text-slate-500">Manage accounts, roles and access status.</p>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">User Management</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Manage accounts, roles and access status.</p>
           </div>
         </div>
         <Button onClick={() => setFormModal('create')}>
@@ -193,7 +193,7 @@ export default function UserManagementPage() {
       </div>
 
       {loading ? (
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <TableSkeleton rows={8} cols={6} />
         </div>
       ) : total === 0 ? (
@@ -203,7 +203,7 @@ export default function UserManagementPage() {
           description="Try adjusting your search or filters, or add a new user."
         />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <TableContainer className="rounded-none border-0 shadow-none">
             <THead>
               <TR>
@@ -228,8 +228,8 @@ export default function UserManagementPage() {
                         {initials(u.name)}
                       </span>
                       <div className="min-w-0">
-                        <p className="font-medium text-slate-800">{u.name}</p>
-                        <p className="text-xs text-slate-500">{u.email}</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-200">{u.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{u.email}</p>
                       </div>
                     </div>
                   </TD>

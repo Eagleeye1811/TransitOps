@@ -6,11 +6,11 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
 import { PermissionGate } from '@/components/common/PermissionGate'
 import { MODULES, ACTIONS } from '@/config/permissions'
-import { getVehicleById } from '@/data/vehicles'
 import { formatCurrency, formatDate, formatNumber } from '@/utils/formatters'
 
-/** Fuel log table with gated edit/delete row actions. */
-export function FuelLogTable({ logs, onEdit, onDelete }) {
+/** Fuel log table with gated edit/delete row actions. `vehicles` is a Map
+ * keyed by id, fetched once by the parent page. */
+export function FuelLogTable({ logs, vehicles = new Map(), onEdit, onDelete }) {
   const [pendingDelete, setPendingDelete] = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -52,16 +52,16 @@ export function FuelLogTable({ logs, onEdit, onDelete }) {
         </THead>
         <TBody>
           {logs.map((log) => {
-            const vehicle = getVehicleById(log.vehicleId)
+            const vehicle = vehicles.get(log.vehicleId)
             return (
               <TR key={log.id}>
                 <TD>
-                  <div className="font-medium text-slate-900">{vehicle?.registration ?? log.vehicleId}</div>
-                  <div className="text-xs text-slate-500">{vehicle?.model ?? '—'}</div>
+                  <div className="font-medium text-slate-900 dark:text-slate-100">{vehicle?.registration ?? log.vehicleId}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{vehicle?.model ?? '—'}</div>
                 </TD>
                 <TD>{formatDate(log.date)}</TD>
                 <TD className="text-right">{formatNumber(log.quantityLitres)}</TD>
-                <TD className="text-right font-medium text-slate-900">{formatCurrency(log.cost)}</TD>
+                <TD className="text-right font-medium text-slate-900 dark:text-slate-100">{formatCurrency(log.cost)}</TD>
                 <TD className="text-right">{formatNumber(log.odometerKm)}</TD>
                 <TD>{log.station}</TD>
                 <TD>{log.receiptRef}</TD>

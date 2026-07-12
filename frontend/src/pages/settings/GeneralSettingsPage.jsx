@@ -61,8 +61,8 @@ export default function GeneralSettingsPage() {
           <SettingsIcon className="size-4.5" />
         </span>
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">General Settings</h1>
-          <p className="text-sm text-slate-500">Organisation-wide preferences and defaults.</p>
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">General Settings</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Organisation-wide preferences and defaults.</p>
         </div>
       </div>
 

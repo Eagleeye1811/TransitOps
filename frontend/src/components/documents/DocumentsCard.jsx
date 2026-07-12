@@ -98,7 +98,7 @@ export function DocumentsCard({ ownerType, ownerId }) {
       </CardHeader>
       <CardContent>
         {documents === undefined ? (
-          <p className="text-sm text-slate-500">Loading…</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading…</p>
         ) : documents.length === 0 ? (
           <EmptyState
             icon={FileText}
@@ -119,16 +119,16 @@ export function DocumentsCard({ ownerType, ownerId }) {
                       className="size-12 shrink-0 rounded-lg border border-slate-200 object-cover"
                     />
                   ) : (
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
                       <FileText className="size-5" />
                     </span>
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-medium text-slate-900">{doc.docType}</span>
-                      {doc.documentNumber && <span className="text-xs text-slate-500">#{doc.documentNumber}</span>}
+                      <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{doc.docType}</span>
+                      {doc.documentNumber && <span className="text-xs text-slate-500 dark:text-slate-400">#{doc.documentNumber}</span>}
                     </div>
-                    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                       {doc.expiryDate && <span>Expires {formatDate(doc.expiryDate)}</span>}
                       {expired && <Badge color="red">Expired</Badge>}
                       {expiringSoon && <Badge color="amber">Expiring soon</Badge>}

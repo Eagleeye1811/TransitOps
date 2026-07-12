@@ -33,13 +33,13 @@ export function TripFilters({ search, onSearchChange, status, onStatusChange, da
         value={date}
         onChange={(e) => onDateChange(e.target.value)}
         aria-label="Filter by scheduled date"
-        className="block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 sm:max-w-[170px]"
+        className="block rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 sm:max-w-[170px] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
       />
       {date && (
         <button
           type="button"
           onClick={() => onDateChange('')}
-          className="text-xs font-medium text-slate-500 hover:text-slate-700"
+          className="text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
         >
           Clear date
         </button>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Download, FileText } from 'lucide-react'
 import { Card, CardContent } from '@/components/common/Card'
 import { Field, Input, Select } from '@/components/common/FormControls'
@@ -6,8 +6,8 @@ import { Button } from '@/components/common/Button'
 import { PermissionGate } from '@/components/common/PermissionGate'
 import { MODULES, ACTIONS } from '@/config/permissions'
 import { useToast } from '@/hooks/useToast'
-import { VEHICLES } from '@/data/vehicles'
 import { REGIONS, VEHICLE_TYPES } from '@/data/regions'
+import { getVehicles } from '@/services/fleetService'
 
 /**
  * Filter bar for the Analytics page. The date range / vehicle / region /
@@ -24,6 +24,22 @@ export function AnalyticsFilterBar({ onExportCsv, onExportPdf }) {
   const [vehicleId, setVehicleId] = useState('')
   const [region, setRegion] = useState('')
   const [vehicleType, setVehicleType] = useState('')
+  const [vehicles, setVehicles] = useState([])
+
+  useEffect(() => {
+    let active = true
+    // Safety Officer has no Fleet module access at all — this filter is
+    // decorative anyway (see docstring), so just fall back to an empty
+    // list rather than surface the 403.
+    getVehicles()
+      .then((data) => {
+        if (active) setVehicles(data)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
 
   const handleExport = (format) => {
     try {
@@ -51,7 +67,7 @@ export function AnalyticsFilterBar({ onExportCsv, onExportPdf }) {
           <Field label="Vehicle">
             <Select value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>
               <option value="">All vehicles</option>
-              {VEHICLES.map((v) => (
+              {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.registration}
                 </option>

@@ -13,9 +13,9 @@ import { usePermissions } from '@/hooks/usePermissions'
 import { useToast } from '@/hooks/useToast'
 import { MODULES, ACTIONS } from '@/config/permissions'
 import { ROLES } from '@/config/roles'
-import { getVehicleById } from '@/data/vehicles'
 import { formatCurrency } from '@/utils/formatters'
 import * as maintenanceService from '@/services/maintenanceService'
+import * as fleetService from '@/services/fleetService'
 
 const PAGE_SIZE = 8
 
@@ -25,22 +25,28 @@ export default function MaintenancePage() {
   const navigate = useNavigate()
 
   const [records, setRecords] = useState([])
+  const [vehicles, setVehicles] = useState([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState(DEFAULT_MAINTENANCE_FILTERS)
   const [page, setPage] = useState(1)
 
   useEffect(() => {
     let cancelled = false
-    maintenanceService.getMaintenanceRecords().then((data) => {
-      if (!cancelled) {
-        setRecords(data)
-        setLoading(false)
+    Promise.all([maintenanceService.getMaintenanceRecords(), fleetService.getVehicles().catch(() => [])]).then(
+      ([recordData, vehicleData]) => {
+        if (!cancelled) {
+          setRecords(recordData)
+          setVehicles(vehicleData)
+          setLoading(false)
+        }
       }
-    })
+    )
     return () => {
       cancelled = true
     }
   }, [])
+
+  const vehiclesById = useMemo(() => new Map(vehicles.map((v) => [v.id, v])), [vehicles])
 
   const filtered = useMemo(() => {
     const search = filters.search.trim().toLowerCase()
@@ -49,7 +55,7 @@ export default function MaintenancePage() {
       if (filters.status && record.status !== filters.status) return false
       if (filters.date && record.serviceDate !== filters.date) return false
       if (search) {
-        const vehicle = getVehicleById(record.vehicleId)
+        const vehicle = vehiclesById.get(record.vehicleId)
         const haystack = [record.serviceType, record.description, vehicle?.registration, vehicle?.model]
           .filter(Boolean)
           .join(' ')
@@ -58,7 +64,7 @@ export default function MaintenancePage() {
       }
       return true
     })
-  }, [records, filters])
+  }, [records, filters, vehiclesById])
 
   const paginated = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE
@@ -88,8 +94,8 @@ export default function MaintenancePage() {
     <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">Maintenance</h1>
-          <p className="text-sm text-slate-500">Track service records, schedules and repair costs across the fleet.</p>
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Maintenance</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Track service records, schedules and repair costs across the fleet.</p>
         </div>
         <PermissionGate module={MODULES.MAINTENANCE} action={ACTIONS.CREATE}>
           <Button onClick={() => navigate('/maintenance/new')}>
@@ -106,17 +112,17 @@ export default function MaintenancePage() {
               <IndianRupee className="size-5" />
             </span>
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Total Maintenance Cost</p>
-              <p className="text-xl font-bold text-slate-900">{formatCurrency(totalCost)}</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Total Maintenance Cost</p>
+              <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{formatCurrency(totalCost)}</p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      <MaintenanceFilters filters={filters} onChange={handleFiltersChange} />
+      <MaintenanceFilters filters={filters} onChange={handleFiltersChange} vehicles={vehicles} />
 
       {loading ? (
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <TableSkeleton rows={PAGE_SIZE} cols={6} />
         </div>
       ) : filtered.length === 0 ? (
@@ -126,8 +132,8 @@ export default function MaintenancePage() {
           description="Try adjusting your filters, or add a new maintenance record."
         />
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-          <MaintenanceTable records={paginated} onComplete={handleComplete} onCancel={handleCancel} />
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+          <MaintenanceTable records={paginated} vehicles={vehiclesById} onComplete={handleComplete} onCancel={handleCancel} />
           <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
         </div>
       )}

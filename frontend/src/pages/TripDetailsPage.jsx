@@ -137,10 +137,10 @@ export default function TripDetailsPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold text-slate-900">{trip.id}</h1>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{trip.id}</h1>
             <StatusBadge status={trip.status} label={TRIP_STATUS_LABELS[trip.status]} />
           </div>
-          <p className="mt-0.5 text-sm text-slate-500">
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
             {trip.source} → {trip.destination}
           </p>
         </div>
@@ -218,7 +218,7 @@ export default function TripDetailsPage() {
           {trip.status === TRIP_STATUS.CANCELLED && trip.cancelReason && (
             <CardContent className="border-t border-slate-100 bg-red-50/50">
               <p className="text-xs font-medium uppercase tracking-wide text-red-600">Cancellation reason</p>
-              <p className="mt-1 text-sm text-slate-700">{trip.cancelReason}</p>
+              <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{trip.cancelReason}</p>
             </CardContent>
           )}
         </Card>
@@ -232,8 +232,8 @@ export default function TripDetailsPage() {
               <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Vehicle</p>
               {vehicle ? (
                 <div className="mt-1">
-                  <p className="text-sm font-medium text-slate-900">{vehicle.registration}</p>
-                  <p className="text-xs text-slate-500">{vehicle.model}</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{vehicle.registration}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{vehicle.model}</p>
                   <StatusBadge status={vehicle.status} className="mt-1.5" />
                 </div>
               ) : (
@@ -244,8 +244,8 @@ export default function TripDetailsPage() {
               <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Driver</p>
               {driver ? (
                 <div className="mt-1">
-                  <p className="text-sm font-medium text-slate-900">{driver.name}</p>
-                  <p className="text-xs text-slate-500">Licence: {driver.licenceCategory}</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{driver.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Licence: {driver.licenceCategory}</p>
                   <StatusBadge status={driver.status} className="mt-1.5" />
                 </div>
               ) : (
@@ -324,7 +324,7 @@ function DetailItem({ icon: Icon, label, value }) {
         {Icon && <Icon className="size-3.5" />}
         {label}
       </p>
-      <p className="mt-1 text-sm text-slate-700">{value}</p>
+      <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{value}</p>
     </div>
   )
 }

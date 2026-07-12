@@ -11,8 +11,8 @@ export function DriverFilters({ filters, onChange }) {
   const set = (key, value) => onChange({ ...filters, [key]: value })
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-center">
-      <div className="hidden items-center gap-1.5 text-xs font-medium text-slate-500 sm:flex">
+    <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:flex-row sm:flex-wrap sm:items-center">
+      <div className="hidden items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 sm:flex">
         <SlidersHorizontal className="size-3.5" />
         Filters
       </div>

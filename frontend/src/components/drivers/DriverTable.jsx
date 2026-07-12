@@ -54,7 +54,7 @@ export function DriverTable({ drivers }) {
         <TBody>
           {drivers.map((driver) => (
             <TR key={driver.id} onClick={() => goTo(driver.id)}>
-              <TD className="font-medium text-slate-900">{driver.name}</TD>
+              <TD className="font-medium text-slate-900 dark:text-slate-100">{driver.name}</TD>
               <TD>{driver.licenceCategory}</TD>
               <TD>
                 <StatusBadge status={driver.status} label={DRIVER_STATUS_LABELS[driver.status]} />
@@ -84,7 +84,7 @@ export function DriverTable({ drivers }) {
       <TBody>
         {drivers.map((driver) => (
           <TR key={driver.id} onClick={() => goTo(driver.id)}>
-            <TD className="font-medium text-slate-900">{driver.name}</TD>
+            <TD className="font-medium text-slate-900 dark:text-slate-100">{driver.name}</TD>
             <TD>{driver.licenceNumber}</TD>
             <TD>{driver.licenceCategory}</TD>
             <TD>

@@ -14,10 +14,11 @@ import { TableSkeleton } from '@/components/common/Skeleton'
 import { MODULES, ACTIONS } from '@/config/permissions'
 import { useToast } from '@/hooks/useToast'
 import { formatDate } from '@/utils/formatters'
-import { DRIVERS as DRIVERS_SEED, DRIVER_STATUS, isLicenceExpiringSoon, isLicenceExpired } from '@/data/drivers'
-import { VEHICLES } from '@/data/vehicles'
-import { SAFETY_INCIDENTS, SAFETY_VIOLATIONS, INCIDENT_SEVERITY_LABELS } from '@/data/incidents'
+import { DRIVER_STATUS, isLicenceExpiringSoon, isLicenceExpired } from '@/data/drivers'
+import { INCIDENT_SEVERITY_LABELS } from '@/data/incidents'
 import { getDrivers, updateDriver, updateDriverStatus } from '@/services/driverService'
+import { getVehicles } from '@/services/fleetService'
+import { getIncidents, createIncident, getViolations, updateViolation } from '@/services/safetyService'
 
 const TABS = [
   { value: 'expiring', label: 'Expiring Licences', icon: Clock },
@@ -31,19 +32,29 @@ export default function CompliancePage() {
   const toast = useToast()
   const [active, setActive] = useState('expiring')
 
-  const [drivers, setDrivers] = useState(DRIVERS_SEED)
+  const [drivers, setDrivers] = useState([])
+  const [vehicles, setVehicles] = useState([])
   const [loading, setLoading] = useState(true)
-  const [incidents, setIncidents] = useState(SAFETY_INCIDENTS)
-  const [violations, setViolations] = useState(SAFETY_VIOLATIONS)
+  const [incidents, setIncidents] = useState([])
+  const [violations, setViolations] = useState([])
 
   useEffect(() => {
     let mounted = true
-    getDrivers().then((list) => {
-      if (mounted) {
-        setDrivers(list)
+    // Safety Officer has full Compliance access but no Fleet module access
+    // at all — fall back to an empty vehicle list rather than let that 403
+    // take down drivers/incidents/violations too.
+    Promise.all([getDrivers(), getVehicles().catch(() => []), getIncidents(), getViolations()])
+      .then(([driverList, vehicleList, incidentList, violationList]) => {
+        if (!mounted) return
+        setDrivers(driverList)
+        setVehicles(vehicleList)
+        setIncidents(incidentList)
+        setViolations(violationList)
         setLoading(false)
-      }
-    })
+      })
+      .catch(() => {
+        if (mounted) setLoading(false)
+      })
     return () => {
       mounted = false
     }
@@ -75,14 +86,15 @@ export default function CompliancePage() {
     toast.success('Driver suspended.')
   }
 
-  const handleRecordIncident = (incident) => {
-    const id = `INC-${String(incidents.length + 1).padStart(3, '0')}`
-    setIncidents((prev) => [{ id, status: 'under_review', ...incident }, ...prev])
+  const handleRecordIncident = async (incident) => {
+    const created = await createIncident(incident)
+    setIncidents((prev) => [created, ...prev])
     toast.success('Incident recorded.')
   }
 
-  const handleUpdateViolation = (id, status) => {
-    setViolations((prev) => prev.map((v) => (v.id === id ? { ...v, status } : v)))
+  const handleUpdateViolation = async (id, status) => {
+    const updated = await updateViolation(id, { status })
+    setViolations((prev) => prev.map((v) => (v.id === id ? updated : v)))
     toast.success('Violation updated.')
   }
 
@@ -109,6 +121,7 @@ export default function CompliancePage() {
             <SafetyIncidentsPanel
               incidents={incidents}
               drivers={drivers}
+              vehicles={vehicles}
               onRecordIncident={handleRecordIncident}
               onSuspendDriver={handleSuspend}
             />
@@ -355,7 +368,7 @@ function SuspendedDriversPanel({ drivers, onReactivate }) {
 // ---------------------------------------------------------------------------
 // Safety Incidents
 // ---------------------------------------------------------------------------
-function SafetyIncidentsPanel({ incidents, drivers, onRecordIncident, onSuspendDriver }) {
+function SafetyIncidentsPanel({ incidents, drivers, vehicles, onRecordIncident, onSuspendDriver }) {
   const [modalOpen, setModalOpen] = useState(false)
   const [confirming, setConfirming] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -403,7 +416,7 @@ function SafetyIncidentsPanel({ incidents, drivers, onRecordIncident, onSuspendD
           <TBody>
             {incidents.map((inc) => {
               const driver = drivers.find((d) => d.id === inc.driverId)
-              const vehicle = VEHICLES.find((v) => v.id === inc.vehicleId)
+              const vehicle = vehicles.find((v) => v.id === inc.vehicleId)
               return (
                 <TR key={inc.id}>
                   <TD>{driver?.name ?? inc.driverId}</TD>
@@ -432,7 +445,13 @@ function SafetyIncidentsPanel({ incidents, drivers, onRecordIncident, onSuspendD
         </TableContainer>
       )}
 
-      <RecordIncidentModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={onRecordIncident} drivers={drivers} />
+      <RecordIncidentModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={onRecordIncident}
+        drivers={drivers}
+        vehicles={vehicles}
+      />
 
       <ConfirmDialog
         open={!!confirming}
@@ -452,7 +471,7 @@ function SafetyIncidentsPanel({ incidents, drivers, onRecordIncident, onSuspendD
   )
 }
 
-function RecordIncidentModal({ open, onClose, onSave, drivers }) {
+function RecordIncidentModal({ open, onClose, onSave, drivers, vehicles }) {
   const emptyForm = { driverId: '', vehicleId: '', type: '', severity: 'low', date: '', description: '' }
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
@@ -509,7 +528,7 @@ function RecordIncidentModal({ open, onClose, onSave, drivers }) {
         <Field label="Vehicle" required>
           <Select value={form.vehicleId} onChange={update('vehicleId')}>
             <option value="">Select vehicle</option>
-            {VEHICLES.map((v) => (
+            {vehicles.map((v) => (
               <option key={v.id} value={v.id}>
                 {v.registration}
               </option>

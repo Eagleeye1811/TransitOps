@@ -11,7 +11,6 @@ import { usePermissions } from '@/hooks/usePermissions'
 import { MODULES, ACTIONS } from '@/config/permissions'
 import { ROLES } from '@/config/roles'
 import { MAINTENANCE_STATUS, MAINTENANCE_STATUS_LABELS } from '@/data/maintenance'
-import { getVehicleById } from '@/data/vehicles'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 import { Wrench } from 'lucide-react'
 
@@ -19,9 +18,10 @@ import { Wrench } from 'lucide-react'
  * Responsive maintenance records table. Cost column is omitted entirely for
  * the Dispatcher role (status-focused, no cost visibility). Complete/Cancel
  * quick actions are gated on the relevant permission and only shown for
- * records that are still open (scheduled/in_shop).
+ * records that are still open (scheduled/in_shop). `vehicles` is a Map
+ * keyed by id, fetched once by the parent page.
  */
-export function MaintenanceTable({ records, onComplete, onCancel }) {
+export function MaintenanceTable({ records, vehicles = new Map(), onComplete, onCancel }) {
   const navigate = useNavigate()
   const { role } = usePermissions()
   const showCost = role !== ROLES.DISPATCHER
@@ -69,13 +69,13 @@ export function MaintenanceTable({ records, onComplete, onCancel }) {
         </THead>
         <TBody>
           {records.map((record) => {
-            const vehicle = getVehicleById(record.vehicleId)
+            const vehicle = vehicles.get(record.vehicleId)
             const isOpen = record.status === MAINTENANCE_STATUS.SCHEDULED || record.status === MAINTENANCE_STATUS.IN_SHOP
             return (
               <TR key={record.id} onClick={() => navigate(`/maintenance/${record.id}`)}>
                 <TD>
-                  <div className="font-medium text-slate-900">{vehicle?.registration ?? record.vehicleId}</div>
-                  <div className="text-xs text-slate-500">{vehicle?.model ?? '—'}</div>
+                  <div className="font-medium text-slate-900 dark:text-slate-100">{vehicle?.registration ?? record.vehicleId}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{vehicle?.model ?? '—'}</div>
                 </TD>
                 <TD>{record.serviceType}</TD>
                 <TD>{formatDate(record.serviceDate)}</TD>
@@ -83,7 +83,7 @@ export function MaintenanceTable({ records, onComplete, onCancel }) {
                 <TD>
                   <StatusBadge status={record.status} label={MAINTENANCE_STATUS_LABELS[record.status]} />
                 </TD>
-                {showCost && <TD className="text-right font-medium text-slate-900">{formatCurrency(record.cost)}</TD>}
+                {showCost && <TD className="text-right font-medium text-slate-900 dark:text-slate-100">{formatCurrency(record.cost)}</TD>}
                 <TD className="text-right">
                   {isOpen && (
                     <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

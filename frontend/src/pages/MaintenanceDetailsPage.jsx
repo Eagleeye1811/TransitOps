@@ -12,9 +12,9 @@ import { MaintenanceForm } from '@/components/maintenance/MaintenanceForm'
 import { useToast } from '@/hooks/useToast'
 import { MODULES, ACTIONS } from '@/config/permissions'
 import { MAINTENANCE_STATUS, MAINTENANCE_STATUS_LABELS } from '@/data/maintenance'
-import { getVehicleById } from '@/data/vehicles'
 import { formatCurrency, formatDate } from '@/utils/formatters'
 import * as maintenanceService from '@/services/maintenanceService'
+import * as fleetService from '@/services/fleetService'
 
 export default function MaintenanceDetailsPage() {
   const { maintenanceId } = useParams()
@@ -22,6 +22,8 @@ export default function MaintenanceDetailsPage() {
   const toast = useToast()
 
   const [record, setRecord] = useState(null)
+  const [vehicle, setVehicle] = useState(null)
+  const [vehicles, setVehicles] = useState([])
   const [loading, setLoading] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
   const [confirmAction, setConfirmAction] = useState(null) // 'complete' | 'cancel'
@@ -29,11 +31,18 @@ export default function MaintenanceDetailsPage() {
 
   useEffect(() => {
     let cancelled = false
+    fleetService.getVehicles().then((data) => {
+      if (!cancelled) setVehicles(data)
+    })
     maintenanceService.getMaintenanceById(maintenanceId).then((data) => {
-      if (!cancelled) {
-        setRecord(data)
-        setLoading(false)
+      if (cancelled) return
+      setRecord(data)
+      if (data?.vehicleId) {
+        fleetService.getVehicleById(data.vehicleId).then((v) => {
+          if (!cancelled) setVehicle(v)
+        })
       }
+      setLoading(false)
     })
     return () => {
       cancelled = true
@@ -58,7 +67,6 @@ export default function MaintenanceDetailsPage() {
     )
   }
 
-  const vehicle = getVehicleById(record.vehicleId)
   const isOpen = record.status === MAINTENANCE_STATUS.SCHEDULED || record.status === MAINTENANCE_STATUS.IN_SHOP
 
   async function handleEditSubmit(payload) {
@@ -94,15 +102,15 @@ export default function MaintenanceDetailsPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <Link to="/maintenance" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700">
+      <Link to="/maintenance" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
         <ArrowLeft className="size-4" />
         Back to Maintenance
       </Link>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-slate-900">{record.serviceType}</h1>
-          <p className="text-sm text-slate-500">{record.id}</p>
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{record.serviceType}</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{record.id}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={record.status} label={MAINTENANCE_STATUS_LABELS[record.status]} />
@@ -142,12 +150,12 @@ export default function MaintenanceDetailsPage() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Registration</p>
-            <p className="mt-1 text-sm font-medium text-slate-900">{vehicle?.registration ?? record.vehicleId}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Registration</p>
+            <p className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">{vehicle?.registration ?? record.vehicleId}</p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Model</p>
-            <p className="mt-1 text-sm font-medium text-slate-900">{vehicle?.model ?? '—'}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Model</p>
+            <p className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">{vehicle?.model ?? '—'}</p>
           </div>
         </CardContent>
       </Card>
@@ -158,26 +166,26 @@ export default function MaintenanceDetailsPage() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Description</p>
-            <p className="mt-1 text-sm text-slate-700">{record.description}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Description</p>
+            <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{record.description}</p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Cost</p>
-            <p className="mt-1 text-sm font-medium text-slate-900">{formatCurrency(record.cost)}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Cost</p>
+            <p className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">{formatCurrency(record.cost)}</p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Status</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Status</p>
             <p className="mt-1">
               <StatusBadge status={record.status} label={MAINTENANCE_STATUS_LABELS[record.status]} />
             </p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Service Date</p>
-            <p className="mt-1 text-sm font-medium text-slate-900">{formatDate(record.serviceDate)}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Service Date</p>
+            <p className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">{formatDate(record.serviceDate)}</p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Expected Completion</p>
-            <p className="mt-1 text-sm font-medium text-slate-900">{formatDate(record.expectedCompletionDate)}</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Expected Completion</p>
+            <p className="mt-1 text-sm font-medium text-slate-900 dark:text-slate-100">{formatDate(record.expectedCompletionDate)}</p>
           </div>
         </CardContent>
       </Card>
@@ -189,6 +197,7 @@ export default function MaintenanceDetailsPage() {
           onSubmit={handleEditSubmit}
           onCancel={() => setEditOpen(false)}
           submitting={submitting}
+          vehicles={vehicles}
         />
       </Modal>
 

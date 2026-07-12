@@ -68,6 +68,15 @@ def get_summary(session: Session) -> dict:
         combined_costs.append({"vehicle": label, "cost": round(cost, 2)})
     top_costliest_vehicles = sorted(combined_costs, key=lambda row: row["cost"], reverse=True)[:5]
 
+    # --- Top vehicles by ROI: separate ranking from top_costliest_vehicles
+    # (highest cost, not highest return) — used by the Financial Analytics
+    # "Vehicle ROI" chart, which otherwise has no live data source for a
+    # role with no Fleet/Trips module access to fetch vehicles/trips itself. ---
+    top_vehicles_by_roi = [
+        {"vehicle": v.registration, "roi": _f(v.roi)}
+        for v in sorted(active_vehicles, key=lambda v: _f(v.roi), reverse=True)[:5]
+    ]
+
     # --- Expense by category: real Expense rows grouped by category, plus
     # synthetic Fuel / Maintenance categories mirroring the frontend mock's
     # blended category list. ---
@@ -175,9 +184,16 @@ def get_summary(session: Session) -> dict:
         select(func.count()).select_from(SafetyViolation).where(SafetyViolation.status == "open")
     ).one()
 
+    # financial_analytics role has no Trips/Drivers module access, so "cost
+    # per trip" needs this computed server-side rather than fetched client-side.
+    total_trips_completed = session.exec(
+        select(func.count()).select_from(Trip).where(Trip.status == TripStatus.COMPLETED)
+    ).one()
+
     return {
         "fleet_utilisation_trend": fleet_utilisation_trend,
         "top_costliest_vehicles": top_costliest_vehicles,
+        "top_vehicles_by_roi": top_vehicles_by_roi,
         "expense_by_category": expense_by_category,
         "vehicle_type_breakdown": vehicle_type_breakdown,
         "underutilised_vehicles": underutilised_vehicles,
@@ -192,6 +208,7 @@ def get_summary(session: Session) -> dict:
         "total_expense_cost": round(total_expense_cost, 2),
         "avg_cost_per_vehicle": round(avg_cost_per_vehicle, 2),
         "avg_vehicle_roi": round(avg_vehicle_roi, 2),
+        "total_trips_completed": total_trips_completed,
         "expiring_licences_count": expiring_licences_count,
         "expired_licences_count": expired_licences_count,
         "open_incidents_count": open_incidents_count,

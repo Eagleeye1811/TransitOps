@@ -77,17 +77,26 @@ def seed(session: Session) -> None:
 
     password_hash = hash_password(DEMO_PASSWORD)
 
+    # SQLModel/SQLAlchemy only auto-orders flush() inserts across tables when
+    # tables are linked via `Relationship()`; this schema uses plain string
+    # `foreign_key=` columns with no back-references, so there's nothing for
+    # the unit-of-work to sort by. Postgres enforces the FK constraints
+    # strictly (unlike SQLite, which silently allows the violation), so each
+    # dependency tier below is flushed before the tier that references it.
     for row in USERS:
         session.add(User(password_hash=password_hash, **_coerce_temporal(row)))
+    session.flush()
 
     for row in VEHICLES:
         session.add(Vehicle(**_coerce_temporal(row)))
 
     for row in DRIVERS:
         session.add(Driver(**_coerce_temporal(row)))
+    session.flush()
 
     for row in TRIPS:
         session.add(Trip(**_coerce_temporal(row)))
+    session.flush()
 
     for row in MAINTENANCE_RECORDS:
         session.add(MaintenanceRecord(**_coerce_temporal(row)))

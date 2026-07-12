@@ -33,8 +33,8 @@ export function TripLifecycle({ status }) {
                   'flex size-9 items-center justify-center rounded-full border-2 transition-colors',
                   done && 'border-emerald-500 bg-emerald-500 text-white',
                   active && 'border-brand-600 bg-brand-600 text-white',
-                  !done && !active && 'border-slate-200 bg-white text-slate-300',
-                  isCancelled && 'border-slate-200 bg-slate-50 text-slate-300'
+                  !done && !active && 'border-slate-200 bg-white text-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-500',
+                  isCancelled && 'border-slate-200 bg-slate-50 text-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-600'
                 )}
               >
                 {done ? <Check className="size-4" /> : <Icon className="size-4" />}
@@ -51,7 +51,7 @@ export function TripLifecycle({ status }) {
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={cn('mx-2 h-0.5 flex-1 rounded', done ? 'bg-emerald-500' : 'bg-slate-200')} />
+              <div className={cn('mx-2 h-0.5 flex-1 rounded', done ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700')} />
             )}
           </div>
         )

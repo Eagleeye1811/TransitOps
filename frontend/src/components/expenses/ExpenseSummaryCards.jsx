@@ -1,7 +1,6 @@
 import { Fuel, Wrench, Receipt, Wallet, Gauge, Route } from 'lucide-react'
 import { Card, CardContent } from '@/components/common/Card'
-import { MAINTENANCE_RECORDS } from '@/data/maintenance'
-import { TRIPS, TRIP_STATUS } from '@/data/trips'
+import { TRIP_STATUS } from '@/data/trips'
 import { formatCurrency } from '@/utils/formatters'
 
 const ACCENTS = {
@@ -18,13 +17,13 @@ function SummaryCard({ icon: Icon, label, value, hint, accent = 'brand' }) {
     <Card>
       <CardContent className="py-4">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
           <span className={`flex size-8 items-center justify-center rounded-lg ${ACCENTS[accent]}`}>
             <Icon className="size-4" />
           </span>
         </div>
-        <p className="mt-2 text-xl font-bold text-slate-900">{value}</p>
-        {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+        <p className="mt-2 text-xl font-bold text-slate-900 dark:text-slate-100">{value}</p>
+        {hint && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{hint}</p>}
       </CardContent>
     </Card>
   )
@@ -32,21 +31,21 @@ function SummaryCard({ icon: Icon, label, value, hint, accent = 'brand' }) {
 
 /**
  * Top-of-page cost summary, shared across the Fuel Logs and Other Expenses
- * tabs. Fuel logs and other expenses reflect live page state (so totals
- * update immediately after CRUD actions); maintenance cost and trip
- * distance are read from the reference dataset directly since this module
- * doesn't otherwise load the maintenance/trips services.
+ * tabs. All four inputs are fetched once by the parent page and reflect
+ * live state (so totals update immediately after CRUD actions). `trips`
+ * may come back empty for roles with no Trips module access (e.g.
+ * Financial Analyst) — cost-per-trip/km then just render as "—".
  */
-export function ExpenseSummaryCards({ fuelLogs = [], expenses = [] }) {
+export function ExpenseSummaryCards({ fuelLogs = [], expenses = [], maintenanceRecords = [], trips = [] }) {
   const totalFuelCost = fuelLogs.reduce((sum, f) => sum + (f.cost || 0), 0)
-  const totalMaintenanceCost = MAINTENANCE_RECORDS.reduce((sum, m) => sum + (m.cost || 0), 0)
+  const totalMaintenanceCost = maintenanceRecords.reduce((sum, m) => sum + (m.cost || 0), 0)
   const totalOtherExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0)
   const totalOperatingCost = totalFuelCost + totalMaintenanceCost + totalOtherExpenses
 
-  const relevantTrips = TRIPS.filter((t) => t.status === TRIP_STATUS.COMPLETED || t.status === TRIP_STATUS.DISPATCHED)
+  const relevantTrips = trips.filter((t) => t.status === TRIP_STATUS.COMPLETED || t.status === TRIP_STATUS.DISPATCHED)
   const totalDistanceKm = relevantTrips.reduce((sum, t) => sum + (t.plannedDistanceKm || 0), 0)
   const costPerKm = totalDistanceKm > 0 ? totalOperatingCost / totalDistanceKm : null
-  const costPerTrip = TRIPS.length > 0 ? totalOperatingCost / TRIPS.length : null
+  const costPerTrip = trips.length > 0 ? totalOperatingCost / trips.length : null
 
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">

@@ -2,16 +2,16 @@ import { Filter } from 'lucide-react'
 import { SearchInput } from '@/components/common/SearchInput'
 import { Select, Input } from '@/components/common/FormControls'
 import { MAINTENANCE_STATUS, MAINTENANCE_STATUS_LABELS } from '@/data/maintenance'
-import { VEHICLES } from '@/data/vehicles'
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const DEFAULT_MAINTENANCE_FILTERS = { search: '', vehicleId: '', status: '', date: '' }
 
 /**
  * Controlled filter bar for the maintenance list. Calls `onChange` with the
- * full next filters object whenever any control changes.
+ * full next filters object whenever any control changes. `vehicles` is
+ * fetched once by the parent page.
  */
-export function MaintenanceFilters({ filters, onChange }) {
+export function MaintenanceFilters({ filters, onChange, vehicles = [] }) {
   function update(patch) {
     onChange({ ...filters, ...patch })
   }
@@ -26,7 +26,7 @@ export function MaintenanceFilters({ filters, onChange }) {
       />
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
           <Filter className="size-3.5" />
           Filters
         </div>
@@ -38,7 +38,7 @@ export function MaintenanceFilters({ filters, onChange }) {
           aria-label="Filter by vehicle"
         >
           <option value="">All vehicles</option>
-          {VEHICLES.map((v) => (
+          {vehicles.map((v) => (
             <option key={v.id} value={v.id}>
               {v.registration}
             </option>

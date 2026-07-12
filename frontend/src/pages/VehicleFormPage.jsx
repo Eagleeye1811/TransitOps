@@ -60,7 +60,7 @@ export default function VehicleFormPage() {
 
   if (!allowed) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <EmptyState
           icon={Ban}
           title="You don't have permission to do this"
@@ -93,7 +93,7 @@ export default function VehicleFormPage() {
 
   if (isEdit && vehicle === null) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <EmptyState
           title="Vehicle not found"
           description="This vehicle may have been removed or the link is incorrect."
@@ -112,7 +112,7 @@ export default function VehicleFormPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <Link to="/fleet" className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700">
+      <Link to="/fleet" className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
         <ArrowLeft className="size-3.5" />
         Back to Fleet
       </Link>
